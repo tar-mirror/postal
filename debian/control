@@ -1,0 +1,16 @@
+Source: postal
+Section: utils
+Priority: optional
+Maintainer: Russell Coker <russell@coker.com.au>
+Standards-Version: 3.0.1
+
+Package: postal
+Architecture: any
+Depends: ${shlibs:Depends}
+Suggests: bonnie++
+Description: SMTP benchmark - the mad postman.
+ This program starts a specified number of processes to send as much random
+ data to random accounts as possible.
+ .
+ Adds the X-Postal header to email it sends, so if someone uses it unethically
+ then it will be easy to filter via procmail.

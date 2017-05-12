@@ -1,0 +1,108 @@
+postal (0.50) unstable; urgency=low
+
+  * Added SSL support.
+
+ -- Russell Coker <russell@coker.com.au>  Thu, 09 Mar 2000 18:35:59 +0100
+
+postal (0.45) unstable; urgency=low
+
+  * Use the OpenSSL code for MD5.
+  * Use more warnings in GCC and change the code not to trigger them.
+  * Pthreads code now can track return values (not using them yet though).
+  * Create threads detached.
+  * Made some error messages clearer.
+  * Added check for blank at end of POP message.
+  * Don't crash for really high rate limits.
+
+ -- Russell Coker <russell@coker.com.au>  Thu, 09 Mar 2000 18:35:59 +0100
+
+postal (0.40) unstable; urgency=low
+
+  * Changed from fork() to pthreads.  This will allow easier portability with
+    OS/2 and NT and also should make it a bit faster.
+  * Added support for just connecting and quiting without doing anything,
+    good for testing a LocalDirector.
+  * Added flag for broken Netscape mail server.
+
+ -- Russell Coker <russell@coker.com.au>  Fri, 25 Feb 2000 11:41:05 +0100
+
+postal (0.30) unstable; urgency=low
+
+  * Now use getopt() for options processing.  All command-line parameters are
+    now changed.
+  * Changed man pages to section 8 and moved binaries to /usr/sbin, this is
+    a sys-admin type program.
+  * Added support for specifying which local IP address to use.  Also added
+    support for specifying multiple servers (for round-robin without DNS
+    configured).
+
+ -- Russell Coker <russell@coker.com.au>  Sun, 20 Feb 2000 00:19:03 +0100
+
+postal (0.25) unstable; urgency=low
+
+  * Cleaned up some of the error message code.
+  * Fixed a race condition and a buffer overrun in the locking code which
+    prevents multiple processes from accessing the same account.  I'm
+    surprised that the previous version appeared to work properly.
+  * Added rate limiting code to Postal (msgs per minute) and Rabid (connections
+    per minute).
+  * Added support for DNS lookups on every connection (for round-robin DNS).
+
+ -- Russell Coker <russell@coker.com.au>  Sun, 13 Feb 2000 20:10:37 +0100
+
+postal (0.20) unstable; urgency=low
+
+  * Postal now supports sending multiple messages per connection.
+  * Postal now sends "EHLO" and supports multi-line responses.
+  * For Postal you now specify the maximum message size not the average.
+  * Hostname format now supports a preceeding '+' to specify round-robin
+    DNS (IE a DNS lookup before every connection).
+  * Hostname format now can be a name or IP address inside square brackets
+    followed by a port number (for non-default port).
+  * DNS lookup code is now in tcp.{c,h} as it should be.
+  * Rabid now sends "\r\n" at the end of each line (used to send "\n").
+
+ -- Russell Coker <russell@coker.com.au>  Thu, 10 Feb 2000 21:22:38 +0100
+
+postal (0.15) unstable; urgency=low
+
+  * Fixed the headers bug.
+  * Debugged Rabid, it seems to work perfectly now. ;)
+  * Postal now adds an md5 checksum to all messages it sends.
+  * Rabid now checks the md5 checksum's on messages it receives that have an
+    X-Postal header field.  It displays an error message on a mis-match.
+
+ -- Russell Coker <russell@coker.com.au>  Mon, 7 Feb 2000 16:55:00 +0100
+
+postal (0.10) unstable; urgency=low
+
+  * Made the stats report more accurately and faster.
+  * Added "Rabid" the POP benchmark (still needs some debugging).
+  * Made the code more object oriented and portable.
+  * Added the postal-list program to list all the possible ways of expanding
+    names.
+
+ -- Russell Coker <russell@coker.com.au>  Fri, 4 Feb 2000 22:02:38 +0100
+
+postal (0.06) unstable; urgency=low
+
+  * Made it use much less CPU time.
+
+ -- Russell Coker <russell@coker.com.au>  Sat, 22 Jan 2000 17:06:51 +0100
+
+postal (0.05) unstable; urgency=low
+
+  * Fixed some minor bugs and added some portability code.
+
+ -- Russell Coker <russell@coker.com.au>  Thu, 12 Jan 2000 21:52:50 +1100
+
+postal (0.01) unstable; urgency=low
+
+  * Initial Release.
+  * Sponsored by Brian May <bam@snoopy.apana.org.au>
+
+ -- Russell Coker <russell@coker.com.au>  Thu, 30 Dec 1999 01:22:45 +0100
+
+Local variables:
+mode: debian-changelog
+End:

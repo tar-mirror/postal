@@ -1,0 +1,88 @@
+.TH rabid 8
+.SH NAME
+rabid \- program to test POP server throughput.
+
+.SH SYNOPSIS
+.B rabid
+.I [-r max-connections-per-minute] [-p processes] [-l local-address]
+.I [-c messages-per-connection] [-a]
+.I pop-server user-list-filename conversion-filename
+
+.SH "DESCRIPTION"
+This manual page documents briefly the
+.BR rabid ,
+program.
+.P
+It is designed to test the performance of POP email servers by reading all
+messages from randomly selected accounts as fast as possible.  A future version
+will support rate limiting to provide a constant load (for testing SMTP
+servers).
+.P
+The
+.B pop-server
+parameter specifies the IP address or name of the mail server that the mail
+is to downloaded from.  If you want to specify a port other than port 110 then
+enclose the host address in
+square brackets and have the port address immidiately following.  If you want
+a DNS lookup for every connection (for testing round-robin DNS) then
+immediately preceed the host address with a '+' character.
+.P
+The
+.B user-list-filename
+is the name of a file which contains a list of user's email addresses and
+passwords.  It will have one address per line and the password follows the
+address with a space to seperate.
+.P
+If a
+.B conversion-filename
+is specified then the names in this file will be taken as a template and
+expanded to make the real names (NB the passwords are not expanded).
+.P
+See the
+.B postal (8)
+man page for details of the expansion process.
+.P
+The
+.B processes
+parameter is the number of processes that should be forked off to attempt
+seperate connections.  A well configured mail server won't accept an unlimited
+number of connections so make sure you don't specify a number larger than the
+number your mail server is configured to handle.  Also for sensible results
+make sure that you don't use enough to make your server thrash as the results
+won't be representative of real-world use.
+.P
+The
+.B max-connections-per-minute
+parameter is for limiting the number of connections that the program
+makes.  This is designed to be used when you want to test the performance
+of other programs when the system is under load.  The default is 24000
+connections per minute.
+.P
+The
+.B messages-per-connection
+parameter specifies the maximum number of messages to download in a single POP
+session.  The default is -1 (unlimited).
+.P
+The
+.B local-address
+parameter specifies which local IP address(es) are used to make the outbound
+connections.  Specified in the same way as the remote address.  This is good
+for testing LocalDirectors or other devices that perform differently depending
+on which source IP address was used.
+.P
+The
+.B -a
+command turns on all logging.  All message data received will be logged.  This
+will make it slow and it may not be able to saturate a fast Ethernet link...
+
+.SH BUGS
+Doesn't actually do SSL yet.
+
+
+.SH AUTHOR
+This program, it's manual page, and the Debian package were written by
+Russell Coker <russell@coker.com.au>.
+
+
+.SH "SEE ALSO"
+.BR postal (8), regex (7)

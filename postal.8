@@ -1,0 +1,130 @@
+.TH postal 8
+.SH NAME
+postal \- program to test SMTP mail server throughput.
+
+.SH SYNOPSIS
+.B postal
+.I [-m maximum-message-size] [-p processes]
+.I [-c messages-per-connection] [-r messages-per-minute]
+.I [-l local-address] [-a] [-b [no]netscape]
+.I smtp-server user-list-filename conversion-filename
+
+.SH "DESCRIPTION"
+This manual page documents briefly the
+.BR postal ,
+program.
+.P
+It is designed to test the performance of SMTP email servers by sending random
+messages to the specified server as fast as possible.  A future version will
+support rate limiting to provide a constant load (for testing POP or IMAP).
+.P
+The
+.B smtp-server
+parameter specifies the IP address or name of the mail server that the mail
+is to be sent to.  Mail sent by
+.B Postal
+will not use MX records, this is to allow testing outbound relays etc.  If you
+want to specify a port other than port 25 then enclose the host address in
+square brackets and have the port address immidiately following.  If you want
+a DNS lookup for every connection (for testing round-robin DNS) then
+immediately preceed the host address with a '+' character.  To specify multiple
+servers for round-robin use then seperate the addresses with commas.
+.P
+The
+.B user-list-filename
+is the name of a file which contains a list of user's email addresses.  This
+can be just user-names or fully qualified email addresses.  Whatever you
+specify will be sent exactly in the SMTP protocol so make sure you do whatever
+is appropriate.  If unsure then use fully qualified addresses (IE
+user@domain).  If a
+.B conversion-filename
+is specified then the names in this file will be taken as a template and
+expanded to make the real names.
+.P
+The
+.B conversion-filename
+parameter will either be "-" (for no conversions) or the name of a file
+containing the conversions to apply to email addresses.  Each line in the
+file can either be a comment (starting with "#") or is to contain two
+parameters.  The first parameter is the regular expression.  For each email
+that is to be sent a randomly selected user-name will be checked against all
+regular expressions, the first match will determine the translation that is
+to be applied.  The translation will be the second parameter on the line.  It
+will contain a number of "." characters specifying characters in the name that
+are not to be translated.  To specify the translations a range of characters
+can be specified inside square brackets.  For example to have every address
+starting with "a" have a character from "01234567890abc" as it's second
+character and a character from "xyz" as it's third character you would have the
+following:
+.B ^a .[0-9abc][xyz]
+.P
+The
+.B maximum-message-size
+indicates the size in Kilobytes that will be the maximum size of the
+message body.  The size of each message body will be a random number between 0
+and the maximum size.  Specify "0" if you want just headers to test the
+connection rate.  The default value is 10.
+.P
+The
+.B processes
+parameter is the number of processes that should be forked off to attempt
+seperate connections.  A well configured mail server won't accept an unlimited
+number of connections so make sure you don't specify a number larger than the
+number your mail server is configured to handle.  Also for sensible results
+make sure that you don't use enough to make your server thrash as the results
+won't be representative of real-world use.  The default value is 1, this
+default is not suitable for real tests, it's just for testing your
+configuration.  If you specify multiple server addresses for round-robin use
+then this number of processes will be created per server, IE 4 servers and
+.B -p5
+will give 20 processes total.
+.P
+The
+.B messages-per-connection
+parameter is for sending more than one message per SMTP connection.  The
+default value is "1".  A value of -1 means to send an indefinate number of
+messages on one connection (~4 billion).  If a value > 1 is specified then
+the number sent on each connection is a random number between 1 and the number
+specified.  For simulating a mail server connected directly to the net use a
+value of 2 or 3.  For simulating a mail server connected to a front-end
+relay use a large number.  For testing for bugs in your mail server use the
+value 0 and leave it running for a week.  ;)  A value of 0 means to disconnect
+without sending any messages.  Good for testing a LocalDirector.
+.P
+The
+.B max-messages-per-minute
+parameter is for limiting the throughput of the program.  This is designed to
+be used when you want to test the performance of other programs when the
+system is under load.  The default is effectively 24000 messages per minute.
+.P
+The
+.B local-address
+parameter specifies which local IP address(es) are used to make the outbound
+connections.  Specified in the same way as the remote address.  This is good
+for testing LocalDirectors or other devices that perform differently depending
+on which source IP address was used.
+.P
+The
+.B -a
+command turns on all logging.  All message data received will be logged.  This
+will make it slow and it may not be able to saturate a fast Ethernet link...
+.P
+The
+.B -b
+switch allows you to specify breakage strings.  Currently the only option is
+for Netscape mail server which strips spaces from the start of subject lines.
+.B -b netscape
+means to avoid leading spaces on subject fields to not break Netscape.
+.B -b nonetscape
+means to always put extra space to test for the bug in Netscape and similar
+products.  Some people say that the RFCs are open to interpretation on this
+issue, I am interested to see whether anyone else interprets it the way that
+Netscape does.
+
+
+.SH AUTHOR
+This program, it's manual page, and the Debian package were written by
+Russell Coker <russell@coker.com.au>.
+
+.SH "SEE ALSO"
+.BR postal-list (8), rabid (8), regex (7)
