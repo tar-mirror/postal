@@ -1,3 +1,11 @@
+postal (0.51) unstable; urgency=low
+
+  * Added support for compiling without SSL.
+
+  * Some hacky support for porting to Solaris.
+
+ -- Russell Coker <russell@coker.com.au>  Thu, 20 Apr 2000 17:28:41 +0100
+
 postal (0.50) unstable; urgency=low
 
   * Added SSL support.

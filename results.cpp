@@ -8,6 +8,7 @@ results::results()
   m_timeLastAction = time(NULL);
   m_msgs = 0;
   m_connections = 0;
+  m_ssl_connections = 0;
   m_bytes = 0;
   m_errors = 0;
 }
@@ -45,11 +46,21 @@ void results::connection()
   m_pollPrint();
 }
 
+void results::ssl()
+{
+  Lock l(m_mut);
+  m_ssl_connections++;
+  m_pollPrint();
+}
 
 void results::pollPrint(bool mustPrint)
 {
   Lock l(m_mut);
   m_pollPrint();
+}
+
+void results::childPrint()
+{
 }
 
 void results::m_pollPrint(bool mustPrint)
@@ -58,12 +69,15 @@ void results::m_pollPrint(bool mustPrint)
   if(mustPrint || (now - m_timeLastAction >= 60) )
   {
     tm *t = localtime(&now);
-    printf("%02d:%02d,%d,%d,%d,%d\n", t->tm_hour, t->tm_min, m_msgs
-                                    , m_bytes / 1024, m_errors
-                                    , m_connections);
+    printf("%02d:%02d,%d,%d,%d", t->tm_hour, t->tm_min, m_msgs
+                               , m_bytes / 1024, m_errors);
+    printf("%d,%d" , m_connections, m_ssl_connections);
+    childPrint();
+    printf("\n");
     fflush(NULL);
     m_msgs = 0;
     m_connections = 0;
+    m_ssl_connections = 0;
     m_bytes = m_bytes % 1024;
     m_errors = 0;
     m_timeLastAction += 60;

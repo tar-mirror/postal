@@ -63,7 +63,8 @@ int smtp::action(PVOID param)
       return 1;
     if(rc == 0)
     {
-      if(m_canTLS && m_useTLS)
+#ifdef USE_SSL
+      if(m_canTLS && (m_useTLS > rand() % 100) )
       {
         rc = sendCommandString("STARTTLS\r\n");
         if(!rc)
@@ -72,7 +73,9 @@ int smtp::action(PVOID param)
           rc = sendCommandString(m_data->helo());
         if(rc > 1)
           return rc;
+        m_res->ssl();
       }
+#endif
       int msgs;
       if(m_msgsPerConnection == 0)
         msgs = -1;
@@ -105,8 +108,16 @@ int smtp::action(PVOID param)
 
 smtp::smtp(const char *addr, const char *ourAddr, const string &name
          , UserList &ul, int msgSize, int numMsgsPerConnection
-         , int processes, Logit *log, TRISTATE netscape, bool ssl)
- : tcp(addr, 25, log, ssl, ourAddr)
+         , int processes, Logit *log, TRISTATE netscape
+#ifdef USE_SSL
+         , bool ssl
+#endif
+          )
+ : tcp(addr, 25, log
+#ifdef USE_SSL
+     , ssl
+#endif
+     , ourAddr)
  , m_name(name)
  , m_ul(ul)
  , m_msgSize(msgSize)
@@ -158,7 +169,9 @@ void smtp::error()
 
 int smtp::connect()
 {
+#ifdef USE_SSL
   m_canTLS = false;
+#endif
   int rc = tcp::connect();
   if(rc)
     return rc;
@@ -269,6 +282,7 @@ int smtp::readCommandResp()
       error();
       return 1;
     }
+#ifdef USE_SSL
     if(!m_canTLS)
     {
       if(!strncmp("250-STARTTLS", recvBuf, 12)
@@ -277,6 +291,7 @@ int smtp::readCommandResp()
         m_canTLS = true;
       }
     }
+#endif
   }
   while(recvBuf[3] == '-');
   return 0;

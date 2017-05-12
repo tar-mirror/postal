@@ -23,17 +23,22 @@ struct X509;
 class tcp : public Fork
 {
 public:
-  tcp(const char *addr, unsigned short default_port, Logit *log, bool ssl
+  tcp(const char *addr, unsigned short default_port, Logit *log
+#ifdef USE_SSL
+    , int ssl
+#endif
     , const char *sourceAddr = NULL);
   tcp(int threadNum, const tcp *parent);
   virtual ~tcp();
 
   // connect returns 0 for connect, 1 for can't connect, and 2 for serious
   // errors.
-  int connect();
+  int connect(short port = 0);
+#ifdef USE_SSL
   // after calling connect() and getting high-level protocol ready call
   // connectTLS() to start TLS.
   int connectTLS();
+#endif
   int sendMsg();
   virtual int disconnect();
   int doAllWork(int rate);
@@ -53,11 +58,13 @@ protected:
 
   virtual int readCommandResp() = 0;
   int sendCommandData(const char *buf, int size);
-  int sendCommandString(const string &s);
+  virtual int sendCommandString(const string &s);
 
   int m_destAffinity;
   Logit *m_log;
-  bool m_useTLS;
+#ifdef USE_SSL
+  int m_useTLS;
+#endif
 
 private:
   int m_fd;
@@ -68,10 +75,12 @@ private:
   bool m_open;
   address *m_addr; // destination
   address *m_sourceAddr;
+#ifdef USE_SSL
   SSL_METHOD *m_sslMeth;
   SSL_CTX* m_sslCtx;
   SSL *m_ssl;
   bool m_isTLS;
+#endif
 };
 
 #endif

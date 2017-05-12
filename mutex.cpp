@@ -5,6 +5,7 @@
 Mutex::Mutex(bool fastMutex)
 {
   int rc;
+#ifdef LINUX
   if(!fastMutex)
   {
     pthread_mutexattr_t attr;
@@ -15,6 +16,7 @@ Mutex::Mutex(bool fastMutex)
     pthread_mutexattr_destroy(&attr);
   }
   else
+#endif
   {
     rc = pthread_mutex_init(&m_mut, NULL);
   }

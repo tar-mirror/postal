@@ -8,7 +8,7 @@ typedef enum
   eNONE
 } TRISTATE;
 
-#define VER_STR "0.50"
+#define VER_STR "0.51"
 #define MAX_PROCESSES 200
 #define MAX_MSG_SIZE 40960
 // The amount of time between updates to the shared memory region for random

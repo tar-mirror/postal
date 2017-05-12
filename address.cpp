@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <netdb.h>
+#include <sys/socket.h>
 
 typedef char *PCHAR;
 
@@ -86,7 +87,7 @@ int address::resolve_name(int ind)
     fprintf(stderr, "Bad address \"%s\" for server.\n", m_hostname[ind]);
     return 1;
   }
-  m_addr[ind].sin_addr.s_addr = *((u_int32_t *)he->h_addr_list[0]);
+  m_addr[ind].sin_addr.s_addr = *((unsigned int *)he->h_addr_list[0]);
   return 0;
 }
 

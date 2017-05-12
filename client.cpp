@@ -1,11 +1,43 @@
-#include "pop.h"
+#include "client.h"
 #include <unistd.h>
 #include "userlist.h"
 #include "logit.h"
 #include "results.h"
 #include "mutex.h"
 
-int pop::action(PVOID param)
+class clientResults : public results
+{
+public:
+  clientResults();
+
+  void imap_connection();
+
+private:
+  virtual void childPrint();
+  int m_imap_connections;
+};
+
+clientResults::clientResults()
+ : results()
+ , m_imap_connections(0)
+{
+}
+
+void clientResults::childPrint()
+{
+  printf(",%d", m_imap_connections);
+  m_imap_connections = 0;
+}
+
+void clientResults::imap_connection()
+{
+  Lock l(m_mut);
+  m_connections++;
+  m_imap_connections++;
+  m_pollPrint();
+}
+
+int client::action(PVOID param)
 {
   bool logAll = false;
   if(m_log && m_log->verbose())
@@ -14,6 +46,10 @@ int pop::action(PVOID param)
   {
     string user, pass;
     getUser(user, pass);
+    if(m_useIMAP > rand() % 100)
+      m_isIMAP = true;
+    else
+      m_isIMAP = false;
     int rc = connect(user, pass);
     if(rc == 0)
     {
@@ -40,20 +76,29 @@ int pop::action(PVOID param)
   }
 }
 
-pop::pop(const char *addr, const char *ourAddr, UserList &ul, int processes
-       , int msgsPerConnection, Logit *log, bool ssl)
- : tcp(addr, 110, log, ssl, ourAddr)
+client::client(const char *addr, const char *ourAddr, UserList &ul
+       , int processes, int msgsPerConnection, Logit *log
+#ifdef USE_SSL
+       , int ssl
+#endif
+       , int imap)
+ : tcp(addr, 110, log
+#ifdef USE_SSL
+     , ssl
+#endif
+     , ourAddr)
  , m_ul(ul)
  , m_maxNameLen(ul.maxNameLen() + 1)
  , m_namesBuf(new char[m_maxNameLen * processes])
  , m_sem(new Mutex(true) )
- , m_res(new results)
+ , m_res(new clientResults)
  , m_msgsPerConnection(msgsPerConnection)
+ , m_useIMAP(imap)
 {
   go(NULL, processes);
 }
 
-pop::pop(int threadNum, const pop *parent)
+client::client(int threadNum, const client *parent)
  : tcp(threadNum, parent)
  , m_ul(parent->m_ul)
  , m_maxNameLen(parent->m_maxNameLen)
@@ -61,15 +106,16 @@ pop::pop(int threadNum, const pop *parent)
  , m_sem(parent->m_sem)
  , m_res(parent->m_res)
  , m_msgsPerConnection(parent->m_msgsPerConnection)
+ , m_useIMAP(parent->m_useIMAP)
 {
 }
 
-Fork *pop::newThread(int threadNum)
+Fork *client::newThread(int threadNum)
 {
-  return new pop(threadNum, this);
+  return new client(threadNum, this);
 }
 
-pop::~pop()
+client::~client()
 {
   if(getThreadNum() < 1)
   {
@@ -78,50 +124,83 @@ pop::~pop()
   }
 }
 
-void pop::sentData(int bytes)
+void client::sentData(int bytes)
 {
 }
 
-void pop::receivedData(int bytes)
+void client::receivedData(int bytes)
 {
   m_res->dataBytes(bytes);
 }
 
-void pop::error()
+void client::error()
 {
   m_res->error();
   tcp::disconnect();
 }
 
-int pop::readCommandResp()
+int client::readCommandResp()
 {
   char recvBuf[1024];
-  int rc = readLine(recvBuf, sizeof(recvBuf));
-  if(rc < 0)
-    return rc;
-  if(recvBuf[0] != '+')
+  int rc;
+  if(m_isIMAP)
   {
-    strtok(recvBuf, "\r\n");
-    printf("Server error:%s.\n", recvBuf);
-    error();
-    return 1;
+    do
+    {
+      rc = readLine(recvBuf, sizeof(recvBuf));
+      if(rc < 0)
+        return rc;
+    }
+    while(recvBuf[0] == '*');
+
+    if(strncmp(recvBuf, m_imapIDtxt, strlen(m_imapIDtxt))
+       || strncmp(&recvBuf[strlen(m_imapIDtxt)], "OK", 2) )
+    {
+      strtok(recvBuf, "\r\n");
+      printf("Server error:%s.\n", recvBuf);
+      error();
+      return 1;
+    }
+  }
+  else
+  {
+    rc = readLine(recvBuf, sizeof(recvBuf));
+    if(rc < 0)
+      return rc;
+    if(recvBuf[0] != '+')
+    {
+      strtok(recvBuf, "\r\n");
+      printf("Server error:%s.\n", recvBuf);
+      error();
+      return 1;
+    }
   }
   return 0;
 }
 
-int pop::connect(const string &user, const string &pass)
+int client::connect(const string &user, const string &pass)
 {
   char aByte;
   int rc = Read(&aByte, 1, 0);
   if(rc != 1)
-    return 1;
-  rc = tcp::connect();
+    return 2;
+  if(m_isIMAP)
+    return connectIMAP(user, pass);
+  return connectPOP(user, pass);
+}
+
+int client::connectPOP(const string &user, const string &pass)
+{
+  int rc = tcp::connect();
   if(rc)
     return rc;
   m_res->connection();
   rc = readCommandResp();
   if(rc)
     return rc;
+  rc = sendCommandString("CAPA\r\n");
+  if(rc > 1)
+    return rc; // not supporting CAPA is OK.
   string u("user ");
   u += user;
   u += "\r\n";
@@ -137,9 +216,33 @@ int pop::connect(const string &user, const string &pass)
   return 0;
 }
 
-int pop::disconnect()
+int client::connectIMAP(const string &user, const string &pass)
 {
-  int rc = sendCommandData("quit\r\n", 6);
+  m_imapID = 0;
+  int rc = tcp::connect(220);
+  if(rc)
+    return rc;
+  m_res->connection();
+  rc = sendCommandString("C CAPABILITY\r\n");
+  if(rc)
+    return rc;
+  string u("C LOGIN ");
+  u += user + " " + pass;
+  u += "\r\n";
+  rc = sendCommandString(u);
+  if(rc)
+    return rc;
+  return 0;
+}
+
+int client::disconnect()
+{
+  int rc;
+  if(m_isIMAP)
+    rc = sendCommandData("C LOGOUT\r\n", 6);
+  else
+    rc = sendCommandData("quit\r\n", 6);
+
 // Comment the next line to make it that if the number of threads equals the
 // number of accounts then each thread always does the same account.
 // This makes things easy to debug and has no real down-side, I don't do this
@@ -152,7 +255,7 @@ int pop::disconnect()
   return tcp::disconnect();
 }
 
-int pop::getMsg(int num, const string &user, bool log)
+int client::getMsg(int num, const string &user, bool log)
 {
   char command[14];
   sprintf(command, "retr %d\r\n", num);
@@ -258,7 +361,7 @@ int pop::getMsg(int num, const string &user, bool log)
   return 0;
 }
 
-int pop::list()
+int client::list()
 {
   int rc = sendCommandData("list\r\n", 6);
   if(rc)
@@ -278,7 +381,7 @@ int pop::list()
   return i;
 }
 
-bool pop::checkUser(const char *user)
+bool client::checkUser(const char *user)
 {
   int num = getNumThreads();
   Lock l(*m_sem);
@@ -295,7 +398,7 @@ bool pop::checkUser(const char *user)
   return true;
 }
 
-void pop::getUser(string &user, string &pass)
+void client::getUser(string &user, string &pass)
 {
   user = m_ul.randomUser();
   while(!checkUser(user.c_str()) )
@@ -305,13 +408,26 @@ void pop::getUser(string &user, string &pass)
   pass = m_ul.password();
 }
 
-int pop::pollRead()
+int client::pollRead()
 {
   m_res->pollPrint();
   return 0;
 }
 
-int pop::WriteWork(PVOID buf, int size, int timeout)
+int client::WriteWork(PVOID buf, int size, int timeout)
 {
   return Write(buf, size, timeout);
+}
+
+int client::sendCommandString(const string &s)
+{
+  if(m_isIMAP)
+  {
+    m_imapID++;
+    sprintf(m_imapIDtxt, "%d ", m_imapID);
+    string command(m_imapIDtxt);
+    command += s;
+    return sendCommandData(command.c_str(), command.size());
+  }
+  return sendCommandData(s.c_str(), s.size());
 }

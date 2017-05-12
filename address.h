@@ -2,6 +2,7 @@
 #define ADDRESS_H
 
 #include <netinet/in.h>
+struct sockaddr;
 
 class address
 {

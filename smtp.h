@@ -2,6 +2,7 @@
 #define SMTP_H
 
 #include <string>
+#include <time.h>
 #include "tcp.h"
 
 class results;
@@ -47,13 +48,17 @@ class smtp : public tcp
 public:
   smtp(const char *addr, const char *ourAddr, const string &name
      , UserList &ul, int msgSize, int numMsgsPerConnection, int processes
-     , Logit *log, TRISTATE netscape, bool ssl);
+     , Logit *log, TRISTATE netscape
+#ifdef USE_SSL
+     , bool ssl
+#endif
+      );
 
   virtual ~smtp();
 
   // connect returns 0 for connect, 1 for can't connect, and 2 for serious
   // errors.
-  virtual int connect();
+  int connect();
   int sendMsg();
   virtual int disconnect();
   int msgsPerConnection() const { return m_msgsPerConnection; }
@@ -78,7 +83,9 @@ private:
   int m_msgsPerConnection;
   results *m_res;
   TRISTATE m_netscape;
+#ifdef USE_SSL
   bool m_canTLS;
+#endif
 };
 
 #endif

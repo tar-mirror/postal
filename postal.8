@@ -5,7 +5,7 @@ postal \- program to test SMTP mail server throughput.
 .SH SYNOPSIS
 .B postal
 .I [-m maximum-message-size] [-p processes]
-.I [-c messages-per-connection] [-r messages-per-minute]
+.I [-c messages-per-connection] [-r messages-per-minute] [-s ssl-percentage]
 .I [-l local-address] [-a] [-b [no]netscape]
 .I smtp-server user-list-filename conversion-filename
 
@@ -120,6 +120,16 @@ means to always put extra space to test for the bug in Netscape and similar
 products.  Some people say that the RFCs are open to interpretation on this
 issue, I am interested to see whether anyone else interprets it the way that
 Netscape does.
+.P
+The
+.B -s
+switch specifies the percentage of connections which are to use
+.B TLS
+AKA
+.B SSL.
+Use 0 for no SSL, or 100 for always SSL, or any number in between.  Default is
+0.
+
 
 
 .SH AUTHOR

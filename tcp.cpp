@@ -3,55 +3,68 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include "userlist.h"
 #include "address.h"
 #include "logit.h"
 
-
+#ifdef USE_SSL
 #include <openssl/crypto.h>
 #include <openssl/x509.h>
 #include <openssl/pem.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#endif
 
 #include "tcp.h"
 
-tcp::tcp(const char *addr, unsigned short default_port, Logit *log, bool ssl
+tcp::tcp(const char *addr, unsigned short default_port, Logit *log
+#ifdef USE_SSL
+       , int ssl
+#endif
        , const char *sourceAddr)
  : m_log(log)
+#ifdef USE_SSL
  , m_useTLS(ssl)
+#endif
  , m_start(0)
  , m_end(0)
  , m_open(false)
  , m_addr(new address(addr, default_port))
+#ifdef USE_SSL
  , m_isTLS(false)
+#endif
 {
   if(sourceAddr)
     m_sourceAddr = new address(sourceAddr);
   else
     m_sourceAddr = NULL;
   m_destAffinity = getThreadNum() % m_addr->addressCount();
+#ifdef USE_SSL
   if(m_useTLS)
   {
-//    SSL_library_init();
+//don't seem to need this    SSL_library_init();
     SSLeay_add_ssl_algorithms();
     SSL_load_error_strings();
   }
+#endif
 }
 
 tcp::tcp(int threadNum, const tcp *parent)
  : Fork(threadNum, parent)
  , m_log(parent->m_log)
+#ifdef USE_SSL
  , m_useTLS(parent->m_useTLS)
+#endif
  , m_start(0)
  , m_end(0)
  , m_open(false)
  , m_addr(parent->m_addr)
  , m_sourceAddr(parent->m_sourceAddr)
+#ifdef USE_SSL
  , m_isTLS(false)
+#endif
 {
 }
 
@@ -60,17 +73,18 @@ tcp::~tcp()
   disconnect();
   if(getThreadNum() < 1)
   {
-printf("deleted tcp parent\n");
     delete m_addr;
     delete m_sourceAddr;
   }
 }
 
-int tcp::connect()
+int tcp::connect(short port)
 {
   m_start = 0;
   m_end = 0;
+#ifdef USE_SSL
   m_isTLS = false;
+#endif
   sockaddr *sa;
   sa = m_addr->get_addr(m_destAffinity);
   if(!sa)
@@ -82,11 +96,12 @@ int tcp::connect()
     error();
     return 2;
   }
+  int rc;
   if(m_sourceAddr)
   {
     sockaddr *source;
     source = (sockaddr *)m_sourceAddr->get_rand_addr();
-    int rc = bind(m_fd, source, sizeof(struct sockaddr_in));
+    rc = bind(m_fd, source, sizeof(struct sockaddr_in));
     if(rc)
     {
       fprintf(stderr, "Can't bind to port.\n");
@@ -96,7 +111,18 @@ int tcp::connect()
     }
   }
   m_poll.fd = m_fd;
-  if(::connect(m_fd, sa, sizeof(struct sockaddr_in)) )
+  if(port)
+  {
+    struct sockaddr_in newAddr;
+    memcpy(&newAddr, sa, sizeof(newAddr));
+    newAddr.sin_port = htons(port);
+    rc = ::connect(m_fd, (sockaddr *)&newAddr, sizeof(struct sockaddr_in));
+  }
+  else
+  {
+    rc = ::connect(m_fd, sa, sizeof(struct sockaddr_in));
+  }
+  if(rc)
   {
     fprintf(stderr, "Can't connect to %s port %d.\n"
                   , inet_ntoa(((sockaddr_in *)sa)->sin_addr)
@@ -116,6 +142,7 @@ int tcp::connect()
   return 0;
 }
 
+#ifdef USE_SSL
 int tcp::connectTLS()
 {
   m_sslMeth = NULL;
@@ -197,11 +224,13 @@ int tcp::connectTLS()
 #endif 
   return 0;
 }
+#endif
 
 int tcp::disconnect()
 {
   if(m_open)
   {
+#ifdef USE_SSL
     if(m_isTLS)
     {
       SSL_shutdown(m_ssl);
@@ -211,6 +240,7 @@ int tcp::disconnect()
       m_isTLS = false;
     }
     else
+#endif
     {
       close(m_fd);
     }
@@ -241,11 +271,13 @@ int tcp::sendData(const char *buf, int size)
       close(m_fd);
       return 2;
     }
+#ifdef USE_SSL
     if(m_isTLS)
     {
       rc = SSL_write(m_ssl, &buf[sent], size - sent);
     }
     else
+#endif
     {
       rc = write(m_fd, &buf[sent], size - sent);
     }
@@ -306,11 +338,13 @@ int tcp::readLine(char *buf, int bufSize)
       error();
       return -2;
     }
+#ifdef USE_SSL
     if(m_isTLS)
     {
       rc = SSL_read(m_ssl, m_buf, sizeof(m_buf));
     }
     else
+#endif
     {
       rc = read(m_fd, m_buf, sizeof(m_buf));
     }
@@ -326,8 +360,7 @@ int tcp::readLine(char *buf, int bufSize)
       buf[ind] = m_buf[m_start];
       ind++;
       m_start++;
-    }
-    while(m_start < m_end && m_buf[m_start - 1] != '\n' && ind < bufSize);
+    } while(m_start < m_end && m_buf[m_start - 1] != '\n' && ind < bufSize);
 
     if(ind == bufSize || (ind > 0 && buf[ind - 1] == '\n') )
     {

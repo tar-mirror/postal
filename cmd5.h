@@ -1,6 +1,13 @@
+#ifndef CMD5_H
+#define CMD5_H
+
 extern "C"
 {
+#ifdef USE_SSL
 #include <openssl/md5.h>
+#else
+#include "md5.h"
+#endif
 }
 
 #include <string>
@@ -25,3 +32,6 @@ private:
   MD5_CTX m_context;
 
 };
+
+#endif
+

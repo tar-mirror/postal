@@ -5,7 +5,7 @@ rabid \- program to test POP server throughput.
 .SH SYNOPSIS
 .B rabid
 .I [-r max-connections-per-minute] [-p processes] [-l local-address]
-.I [-c messages-per-connection] [-a]
+.I [-c messages-per-connection] [-a] [-s ssl-percentage] [-i imap-percentage]
 .I pop-server user-list-filename conversion-filename
 
 .SH "DESCRIPTION"
@@ -74,9 +74,22 @@ The
 .B -a
 command turns on all logging.  All message data received will be logged.  This
 will make it slow and it may not be able to saturate a fast Ethernet link...
+.P
+The
+.B -s
+switch specifies the percentage of connections which are to use
+.B TLS
+AKA
+.B SSL.
+Use 0 for no SSL, or 100 for always SSL, or any number in between.  Default is
+0.
+.P
+The
+.B -i
+switch specifies the percentage of IMAP connections (default is POP).
 
 .SH BUGS
-Doesn't actually do SSL yet.
+Doesn't actually do SSL or IMAP yet.
 
 
 .SH AUTHOR

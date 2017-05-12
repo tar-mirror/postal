@@ -14,7 +14,10 @@ void usage()
 {
   printf("Usage: postal [-m maximum-message-size] [-p processes] [-l local-address]\n"
          "              [-c messages-per-connection] [-r messages-per-minute] [-a]\n"
-         "              [-b [no]netscape] [-s]\n"
+         "              [-b [no]netscape]\n"
+#ifdef USE_SSL
+         "              [-s ssl-percentage]\n"
+#endif
          "              smtp-server user-list-filename conversion-filename\n"
          "\n"
          "Postal Version: " VER_STR "\n");
@@ -30,10 +33,12 @@ int main(int argc, char **argv)
   const char *ourAddr = NULL;
   bool allLog = false;
   TRISTATE netscape = eNONE;
-  bool ssl = false;
+#ifdef USE_SSL
+  int ssl = 0;
+#endif
 
   int c;
-  while(-1 != (c = getopt(argc, argv, "ab:m:p:sc:r:l:")) )
+  while(-1 != (c = getopt(argc, argv, "ab:m:p:s:c:r:l:")) )
   {
     switch(char(c))
     {
@@ -57,7 +62,11 @@ int main(int argc, char **argv)
         processes = atoi(optarg);
       break;
       case 's':
-        ssl = true;
+#ifdef USE_SSL
+        ssl = atoi(optarg);
+#else
+        usage();
+#endif
       break;
       case 'c':
         msgsPerConnection = atoi(optarg);
@@ -70,9 +79,17 @@ int main(int argc, char **argv)
       break;
     }
   }
-  if(maxMsgSize < 0 || maxMsgSize > MAX_MSG_SIZE || processes < 1
-     || processes > MAX_PROCESSES || msgsPerMinute < 0 || msgsPerConnection < -1 )
+  if(maxMsgSize < 0 || maxMsgSize > MAX_MSG_SIZE)
     usage();
+
+  if(processes < 1 || processes > MAX_PROCESSES)
+    usage();
+  if(msgsPerMinute < 0 || msgsPerConnection < -1 )
+    usage();
+#ifdef USE_SSL
+  if(ssl < 0 || ssl > 100)
+    usage();
+#endif
 
   if(optind + 3 > argc)
     usage();
@@ -86,33 +103,42 @@ int main(int argc, char **argv)
     return 1;
   }
   struct sigaction sa;
-  sa.sa_handler = NULL;
+  sa.sa_handler = SIG_IGN;
   sa.sa_sigaction = NULL;
-  __sigemptyset(&sa.sa_mask);
   sa.sa_flags = 0;
-  sa.sa_restorer = NULL;
   if(sigaction(SIGPIPE, &sa, NULL))
   {
     printf("Can't block SIGPIPE.\n");
     return 1;
   }
-  utsname uts;
+  struct utsname uts;
   if(uname(&uts))
   {
     printf("Unable to get name of this host.\n");
     return 1;
   }
   string name = uts.nodename;
+#ifdef LINUX
   if(strlen(uts.domainname))
   {
     name += '.';
     name += uts.domainname;
   }
-  printf("time,messages,data(K),errors,connections\n");
+#endif
+  printf("time,messages,data(K),errors,connections"
+#ifdef USE_SSL
+    ",SSL connections"
+#endif
+    "\n");
 
   Logit log("postal.log", allLog);
   smtp mailer(argv[optind], ourAddr, name, ul, maxMsgSize
-            , msgsPerConnection, processes, &log, netscape, ssl);
+            , msgsPerConnection, processes, &log, netscape
+#ifdef USE_SSL
+            , ssl);
+#else
+            );
+#endif
 
   return mailer.doAllWork(msgsPerMinute);
 }

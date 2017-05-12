@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
 
 #include "userlist.h"
-#include "pop.h"
+#include "client.h"
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
@@ -13,7 +13,10 @@
 void usage()
 {
   printf("Usage: rabid [-r max-connections-per-minute] [-p processes] [-l local-address]\n"
-         "             [-c messages-per-connection] [-a] [-s]\n"
+         "             [-c messages-per-connection] [-a] [-i imap-percentage]\n"
+#ifdef USE_SSL
+         "             [-s ssl-percentage]\n"
+#endif
          "             pop-server user-list-filename conversion-filename\n"
          "\n"
          "Rabid Version: " VER_STR "\n");
@@ -28,10 +31,13 @@ int main(int argc, char **argv)
   int msgsPerConnection = -1;
   const char *ourAddr = NULL;
   bool logAll = false;
-  bool ssl = false;
+#ifdef USE_SSL
+  int ssl = 0;
+#endif
+  int imap = 0;
 
   int c;
-  while(-1 != (c = getopt(argc, argv, "ap:sr:l:c:")) )
+  while(-1 != (c = getopt(argc, argv, "ac:i:l:p:r:s:")) )
   {
     switch(char(c))
     {
@@ -42,6 +48,15 @@ int main(int argc, char **argv)
       case 'a':
         logAll = true;
       break;
+      case 'c':
+        msgsPerConnection = atoi(optarg);
+      break;
+      case 'i':
+        imap = atoi(optarg);
+      break;
+      case 'l':
+        ourAddr = optarg;
+      break;
       case 'p':
         processes = atoi(optarg);
       break;
@@ -49,55 +64,61 @@ int main(int argc, char **argv)
         connectionsPerMinute = atoi(optarg);
       break;
       case 's':
-        ssl = true;
-      break;
-      case 'l':
-        ourAddr = optarg;
-      break;
-      case 'c':
-        msgsPerConnection = atoi(optarg);
+#ifdef USE_SSL
+        ssl = atoi(optarg);
+#else
+        usage();
+#endif
       break;
     }
   }
   if(processes < 1 || processes > MAX_PROCESSES || connectionsPerMinute < 0)
+    usage();
+#ifdef USE_SSL
+  if(ssl < 0 || ssl > 100)
+    usage();
+#endif
+  if(imap < 0 || imap > 100)
     usage();
   if(optind + 3 > argc)
     usage();
 
   UserList ul(argv[optind + 1], argv[optind + 2], true);
 
-  int fd[2];
-  if(pipe(fd))
-  {
-    printf("Can't create pipe.\n");
-    return 1;
-  }
   struct sigaction sa;
-  sa.sa_handler = NULL;
+  sa.sa_handler = SIG_IGN;
   sa.sa_sigaction = NULL;
-  __sigemptyset(&sa.sa_mask);
   sa.sa_flags = 0;
-  sa.sa_restorer = NULL;
   if(sigaction(SIGPIPE, &sa, NULL))
   {
     printf("Can't block SIGPIPE.\n");
     return 1;
   }
-  utsname uts;
+  struct utsname uts;
   if(uname(&uts))
   {
     printf("Unable to get name of this host.\n");
     return 1;
   }
+#ifdef LINUX
   string name = uts.nodename;
   if(strlen(uts.domainname))
   {
     name += '.';
     name += uts.domainname;
   }
-  printf("time,messages,data(K),errors,connections\n");
+#endif
+  printf("time,messages,data(K),errors,connections"
+#ifdef USE_SSL
+         ",SSL connections,"
+#endif
+         "IMAP connections\n");
   Logit log("rabid.log", logAll);
-  pop popper(argv[optind], ourAddr, ul, processes, msgsPerConnection, &log, ssl);
+  client popper(argv[optind], ourAddr, ul, processes, msgsPerConnection, &log
+#ifdef USE_SSL
+              , ssl
+#endif
+              , imap);
 
   return popper.doAllWork(connectionsPerMinute);
 }
