@@ -3,6 +3,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/time.h>
+#include <time.h>
 #include "userlist.h"
 #include "logit.h"
 #include "results.h"
@@ -13,7 +15,7 @@ smtpData::smtpData()
  , m_randomLen(strlen(m_randomLetters))
  , m_postalMsg("X-Postal: " VER_STR " - the mad postman.\r\n"
                "X-Postal: http://www.coker.com.au/postal/\r\n"
-               "X-Postal: This is not a real email.\r\n")
+               "X-Postal: This is not a real email.\r\n\r\n")
  , m_dnsLock(true)
  , m_timeLastAction(time(NULL))
 {
@@ -70,11 +72,11 @@ string smtpData::randomString(int max_len) const
 }
 
 // Return a random date that may be as much as 60 seconds in the future or 600 seconds in the past.
-string smtpData::date() const
+const string smtpData::date() const
 {
   time_t t = time(NULL);
   struct tm broken;
-  // "Date: Day, dd Mon yyyy hh:mm:ss +zzzz\r\n"
+  // 44 chars for "Date: Day, dd Mon yyyy hh:mm:ss +zzzz\r\n"
   char date_buf[44];
 
   t += 60 - random() % 600;
@@ -83,6 +85,22 @@ string smtpData::date() const
     return string("Error making date\r\n");
   
   return string(date_buf);
+}
+
+const string smtpData::msgId(const char *sender, const unsigned threadNum) const
+{
+  char msgId_buf[256];
+  const unsigned int max_sender_len = sizeof(msgId_buf) - 35;
+
+  if(strlen(sender) > max_sender_len)
+    sender += strlen(sender) - max_sender_len;
+  else if(*sender == '<')
+    sender++;
+
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  snprintf(msgId_buf, sizeof(msgId_buf), "Message-Id: <%08X.%03X.%03X.%s\r\n", unsigned(tv.tv_sec), unsigned(tv.tv_usec % 2048), threadNum % 2048, sender);
+  return string(msgId_buf);
 }
 
 Thread *smtp::newThread(int threadNum)
@@ -109,7 +127,7 @@ int smtp::action(PVOID)
           rc = sendCommandString(m_helo);
         if(rc > 1)
           return rc;
-        m_res->ssl();
+        m_res->connect_ssl();
       }
 #endif
       int msgs;
@@ -248,7 +266,8 @@ int smtp::sendMsg()
   if(rc != 1)
     return 1;
 
-  string from = string("<") + m_senderList->randomUser() + '>';
+  string sender = m_senderList->randomUser();
+  string from = string("<") + sender + '>';
   string to = string("<") + m_ul.randomUser() + '>';
   rc = sendCommandString(string("MAIL FROM: ") + from + "\r\n");
   if(rc)
@@ -266,9 +285,13 @@ int smtp::sendMsg()
     subject += " ";
   subject += m_data->randomString(60);
   m_md5.addData(subject);
+  string date = m_data->date();
+  m_md5.addData(date);
+  string msgId = m_data->msgId(from.c_str(), getThreadNum());
+  m_md5.addData(msgId);
   string str = string("To: ") + to + "\r\n"
-                + subject + m_data->date() + m_data->postalMsg()
-                + "From: " + from + "\r\n\r\n";
+                + subject + date + msgId + "From: " + from + "\r\n"
+                + m_data->postalMsg();
   rc = sendString(str);
   if(rc)
     return rc;

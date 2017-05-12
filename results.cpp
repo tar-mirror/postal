@@ -44,7 +44,7 @@ void results::connection()
 }
 
 #ifdef USE_SSL
-void results::ssl()
+void results::connect_ssl()
 {
   Lock l(m_mut);
   m_ssl_connections++;

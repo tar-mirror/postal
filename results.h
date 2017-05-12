@@ -15,7 +15,7 @@ public:
   void message();
   void connection();
 #ifdef USE_SSL
-  void ssl();
+  void connect_ssl();
 #endif
 
   void print();

@@ -42,6 +42,8 @@ public:
   );
   virtual ~base_tcp();
 
+  int do_stuff();
+
 #ifdef USE_SSL
   // after calling Connect() and getting high-level protocol ready call
   // ConnectTLS() to start TLS.

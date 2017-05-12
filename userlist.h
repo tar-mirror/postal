@@ -24,7 +24,7 @@ public:
   UserList(UserList &list);
   ~UserList();
 
-  string randomUser();
+  const string &randomUser();
   string password(); // get the password from the last user we got
   string sequentialUser();
   size_t maxNameLen() const { return m_maxNameLen; }

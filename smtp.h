@@ -40,7 +40,9 @@ public:
   const string &quit() const { return m_quit; }
   // return a random string that ends with "\r\n"
   string randomString(int max_len) const;
-  string date() const;
+  const string date() const;
+  const string msgId(const char *sender, const unsigned threadNum) const;
+
   // return the X-Postal lines
   const string &postalMsg() const { return m_postalMsg; }
 

@@ -245,11 +245,14 @@ int readCommand(base_tcp &t, char *buf, int bufSize, bool stripCR, int timeout)
     if(rc < 0 || strcasecmp(buf, "starttls"))
       return rc;
     t.printf("220 2.0.0 Ready to start TLS\r\n");
-    t.ConnectTLS();
+    if(t.ConnectTLS())
+      return -1;
+    res.connect_ssl();
     rc = do_helo(t, buf, bufSize);
     if(rc < 0)
       return rc; // need to make sure values are consistent
-    return t.readLine(buf, bufSize, stripCR, timeout);
+    rc = t.readLine(buf, bufSize, stripCR, timeout);
+    return rc;
   }
   else
 #endif

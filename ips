@@ -1,6 +1,0 @@
-#!/bin/sh
-
-for n in `seq 1 254`
-  do ifconfig eth0:$n 10.254.0.$n netmask 255.255.255.0
-done
-

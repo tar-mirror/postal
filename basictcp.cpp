@@ -70,7 +70,7 @@ void base_tcp::m_initialize_tls_session()
 {
   const int kx_prio[] = { GNUTLS_KX_ANON_DH, 0 };
 
-  gnutls_init (&m_gnutls_session, GNUTLS_SERVER);
+  gnutls_init(&m_gnutls_session, GNUTLS_SERVER);
 
   /* avoid calling all the priority functions, since the defaults
    * are adequate.
@@ -172,6 +172,8 @@ int base_tcp::ConnectTLS()
   X509_free(server_cert);
 #endif  // 0
 #else
+
+  gnutls_anon_allocate_server_credentials(&m_anoncred);
   m_initialize_tls_session();
 
   if(!m_init_dh_params)
@@ -179,6 +181,17 @@ int base_tcp::ConnectTLS()
     m_init_dh_params = 1;
     m_generate_dh_params();
   }
+
+  gnutls_anon_set_server_dh_params(m_anoncred, m_dh_params);
+
+  gnutls_transport_set_ptr(m_gnutls_session, (gnutls_transport_ptr_t)m_sock);
+  int rc = gnutls_handshake(m_gnutls_session);
+  if(rc < 0)
+  {
+    gnutls_deinit(m_gnutls_session);
+    return 2;
+  }
+  m_isTLS = 1;
 
   /* request client certificate if any.
    */

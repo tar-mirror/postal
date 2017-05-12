@@ -1,3 +1,11 @@
+postal (0.66) unstable; urgency=low
+
+  * Added MessageId to Postal.
+  * Added "make dep".
+  * Made GNUTLS work in bhm.
+
+ -- Russell Coker <russell@coker.com.au>  Fri,  2 Mar 2007 18:44:00 +1100
+
 postal (0.65) unstable; urgency=low
 
   * Added new program bhm to listen on port 25 and send mail to /dev/null.

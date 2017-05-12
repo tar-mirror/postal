@@ -67,7 +67,7 @@ UserList::~UserList()
   }
 }
 
-string UserList::randomUser()
+const string &UserList::randomUser()
 {
   m_index = random() % m_users->size();
   return m_users[0][m_index];
