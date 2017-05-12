@@ -55,7 +55,7 @@ int client::action(PVOID)
       m_isIMAP = true;
     else
       m_isIMAP = false;
-    int rc = connect(user, pass);
+    int rc = Connect(user, pass);
     if(rc == 0)
     {
       int msgs = 0;
@@ -196,7 +196,7 @@ ERROR_TYPE client::readCommandResp(bool important)
   return eNoError;
 }
 
-int client::connect(const string &user, const string &pass)
+int client::Connect(const string &user, const string &pass)
 {
   char aByte;
   int rc = Read(&aByte, 1, 0);
@@ -209,7 +209,7 @@ int client::connect(const string &user, const string &pass)
 
 int client::connectPOP(const string &user, const string &pass)
 {
-  int rc = tcp::connect();
+  int rc = tcp::Connect();
   if(rc)
     return rc;
   m_res->connection();
@@ -261,7 +261,7 @@ int client::connectPOP(const string &user, const string &pass)
 int client::connectIMAP(const string &user, const string &pass)
 {
   m_imapID = 0;
-  int rc = tcp::connect(143);
+  int rc = tcp::Connect(143);
   if(rc)
     return rc;
   m_res->connection();

@@ -1,20 +1,21 @@
+# Generated automatically from Makefile.in by configure.
 EXE=postal postal-list rabid
 MAN8=postal-list.8 postal.8 rabid.8
 
 all: $(EXE)
 
-prefix=@prefix@
-eprefix=@exec_prefix@
+prefix=/home/rjc/debian/postal-0.61/debian/postal/usr
+eprefix=${prefix}
 WFLAGS=-Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -Woverloaded-virtual -pedantic -ffor-scope
 
-CXX=@CXX@ $(CFLAGS) -O2 -g $(WFLAGS)
-CC=@CC@ $(CFLAGS) -O2 -g $(WFLAGS)
+CXX=c++ $(CFLAGS) -O2 -g $(WFLAGS)
+CC=gcc $(CFLAGS) -O2 -g $(WFLAGS)
 
-INSTALL=@INSTALL@
+INSTALL=/usr/bin/install -c
 
 TESTEXE=ex-test
-BASEOBJS=expand.o userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
-LFLAGS=-lstdc++ @extra_ldflags@
+BASEOBJS=expand.o userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o 
+LFLAGS=-lstdc++  -lssl -lcrypto -lpthread
 
 
 ALLOBJS=$(BASEOBJS) smtp.o client.o
@@ -33,11 +34,11 @@ postal-list: postal-list.cpp expand.o
 
 install-bin: $(EXE)
 	mkdir -p $(eprefix)/sbin
-	@INSTALL_PROGRAM@ @stripping@ $(EXE) $(eprefix)/sbin
+	${INSTALL} -s $(EXE) $(eprefix)/sbin
 
 install: install-bin
-	mkdir -p @mandir@/man8
-	@INSTALL_DATA@ $(MAN8) @mandir@/man8
+	mkdir -p ${prefix}/man/man8
+	${INSTALL} -m 644 $(MAN8) ${prefix}/man/man8
 
 %.o: %.cpp %.h postal.h
 	$(CXX) -c $<

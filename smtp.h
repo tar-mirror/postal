@@ -76,9 +76,9 @@ public:
 
   virtual ~smtp();
 
-  // connect returns 0 for connect, 1 for can't connect, and 2 for serious
+  // Connect returns 0 for connect, 1 for can't connect, and 2 for serious
   // errors.
-  int connect();
+  int Connect();
   int sendMsg();
   virtual int disconnect();
   int msgsPerConnection() const { return m_msgsPerConnection; }

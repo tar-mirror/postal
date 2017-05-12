@@ -39,7 +39,6 @@ int main(int argc, char **argv)
 #endif
 
   int c;
-  optind = 0;
   while(-1 != (c = getopt(argc, argv, "ab:m:p:s:c:r:l:z:Z:")) )
   {
     switch(char(c))

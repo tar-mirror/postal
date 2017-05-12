@@ -87,7 +87,7 @@ int smtp::action(PVOID)
 {
   while(1)
   {
-    int rc = connect();
+    int rc = Connect();
     if(rc > 1)
       return 1;
     if(rc == 0)
@@ -97,7 +97,7 @@ int smtp::action(PVOID)
       {
         rc = sendCommandString("STARTTLS\r\n");
         if(!rc)
-          rc = connectTLS();
+          rc = ConnectTLS();
         if(!rc)
           rc = sendCommandString(m_helo);
         if(rc > 1)
@@ -189,9 +189,9 @@ void smtp::error()
   tcp::disconnect();
 }
 
-int smtp::connect()
+int smtp::Connect()
 {
-  int rc = tcp::connect();
+  int rc = tcp::Connect();
   if(rc)
     return rc;
   m_res->connection();

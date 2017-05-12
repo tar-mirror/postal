@@ -22,9 +22,9 @@ public:
 
   virtual ~client();
 
-  // connect returns 0 for connect, 1 for can't connect, and 2 for serious
+  // Connect returns 0 for connect, 1 for can't connect, and 2 for serious
   // errors.
-  int connect(const string &user, const string &pass);
+  int Connect(const string &user, const string &pass);
   virtual int disconnect();
   int list();
   int getMsg(int num, const string &user, bool log = false);

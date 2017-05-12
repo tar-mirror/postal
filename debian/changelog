@@ -1,3 +1,14 @@
+postal (0.61) unstable; urgency=high
+
+  * Fixed the makefile to not use "-d" or "-p" options to $(INSTALL).
+
+  * Changed connect() functions to Connect() because of some problems with
+    Solaris.
+
+  * Removed the optind=0 which caused problems on BSD.
+
+ -- Russell Coker <russell@coker.com.au>  Sun, 16 Jun 2002 21:16:00 +0200
+
 postal (0.60) unstable; urgency=high
 
   * Added #include <stdlib.h> to mutex.cpp to make exit() be resolved correctly.

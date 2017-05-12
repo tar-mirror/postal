@@ -88,7 +88,7 @@ tcp::~tcp()
     delete m_debug;
 }
 
-int tcp::connect(short port)
+int tcp::Connect(short port)
 {
 #ifdef USE_SSL
   m_canTLS = false;
@@ -129,11 +129,11 @@ int tcp::connect(short port)
     struct sockaddr_in newAddr;
     memcpy(&newAddr, sa, sizeof(newAddr));
     newAddr.sin_port = htons(port);
-    rc = ::connect(m_fd, (sockaddr *)&newAddr, sizeof(struct sockaddr_in));
+    rc = connect(m_fd, (sockaddr *)&newAddr, sizeof(struct sockaddr_in));
   }
   else
   {
-    rc = ::connect(m_fd, sa, sizeof(struct sockaddr_in));
+    rc = connect(m_fd, sa, sizeof(struct sockaddr_in));
   }
   if(rc)
   {
@@ -162,7 +162,7 @@ int tcp::connect(short port)
 }
 
 #ifdef USE_SSL
-int tcp::connectTLS()
+int tcp::ConnectTLS()
 {
   m_sslMeth = NULL;
   m_sslCtx = NULL;

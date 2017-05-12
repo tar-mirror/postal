@@ -41,7 +41,6 @@ int main(int argc, char **argv)
   bool debugMultipleFiles = false;
 
   int c;
-  optind = 0;
   while(-1 != (c = getopt(argc, argv, "ab:d:c:i:l:p:r:s:z:Z:")) )
   {
     switch(char(c))

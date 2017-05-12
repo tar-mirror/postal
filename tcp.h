@@ -44,11 +44,11 @@ public:
 
   // connect returns 0 for connect, 1 for can't connect, and 2 for serious
   // errors.
-  int connect(short port = 0);
+  int Connect(short port = 0);
 #ifdef USE_SSL
-  // after calling connect() and getting high-level protocol ready call
-  // connectTLS() to start TLS.
-  int connectTLS();
+  // after calling Connect() and getting high-level protocol ready call
+  // ConnectTLS() to start TLS.
+  int ConnectTLS();
 #endif
   int sendMsg();
   virtual int disconnect();
