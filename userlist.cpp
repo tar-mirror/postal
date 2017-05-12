@@ -2,42 +2,41 @@
 #include <stdio.h>
 #include "expand.h"
 
-UserList::UserList(const char *userListFile
-                 , const char *conversionFile
-                 , bool usePassword)
+UserList::UserList(const char *userListFile, bool usePass, bool stripDom)
  : m_users(new STR_VEC)
- , m_passwords(new STR_VEC)
- , m_exp(new NameExpand(conversionFile))
+ , m_passwords(NULL)
  , m_index(0)
  , m_maxNameLen(0)
  , m_primary(true)
 {
+  char buf[1024];
   FILE *fp = fopen(userListFile, "r");
   if(!fp)
   {
     printf("Can't open \"%s\".\n", userListFile);
     exit(1);
   }
-  char buf[1024];
+
+  if(usePass)
+    m_passwords = new STR_VEC;
+
   while(fgets(buf, sizeof(buf), fp) )
   {
     strtok(buf, "\n");
-    if(buf[0] && buf[0] != '#' && buf[0] != '\n')
+    if(buf[0] && buf[0] != '#')
     {
-      if(usePassword)
+      strtok(buf, " ");
+      char *pass = strtok(NULL, " ");
+      if(!pass && usePass)
       {
-        size_t len = strlen(buf);
-        strtok(buf, " ");
-        if(len > strlen(buf))
-        {
-          m_users->push_back(buf);
-          m_passwords->push_back(buf + strlen(buf) + 1);
-        }
+        printf("Need a password for \"%s\".", buf);
+        continue;
       }
-      else
-      {
-        m_users->push_back(buf);
-      }
+      if(stripDom)
+        strtok(buf, "@");
+      m_users->push_back(buf);
+      if(usePass)
+        m_passwords->push_back(buf + strlen(buf) + 1);
       if(strlen(buf) > m_maxNameLen)
         m_maxNameLen = strlen(buf);
     }
@@ -53,7 +52,6 @@ UserList::UserList(const char *userListFile
 UserList::UserList(UserList &list)
  : m_users(list.m_users)
  , m_passwords(list.m_passwords)
- , m_exp(list.m_exp)
  , m_index(0)
  , m_maxNameLen(0)
  , m_primary(false)
@@ -66,28 +64,21 @@ UserList::~UserList()
   {
     delete m_users;
     delete m_passwords;
-    delete m_exp;
   }
 }
 
 string UserList::randomUser()
 {
   m_index = random() % m_users->size();
-  string str;
-  m_exp->expand(str, m_users[0][m_index]);
-  return str;
+  return m_users[0][m_index];
 }
 
 string UserList::sequentialUser()
 {
-  string str;
-  while(m_exp->expand(str, m_users[0][m_index], true))
-  {
-    m_index++;
-    if(m_index == m_users->size())
-      m_index = 0;
-  }
-  return str;
+  m_index++;
+  if(m_index == m_users->size())
+    m_index = 0;
+  return m_users[0][m_index];
 }
 
 string UserList::password()

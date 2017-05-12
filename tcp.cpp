@@ -12,7 +12,8 @@
 #include "address.h"
 #include "logit.h"
 
-tcp::tcp(const char *addr, unsigned short default_port, Logit *log
+tcp::tcp(int *exitCount, const char *addr, unsigned short default_port
+       , Logit *log
 #ifdef USE_SSL
        , int ssl
 #endif
@@ -24,6 +25,7 @@ tcp::tcp(const char *addr, unsigned short default_port, Logit *log
  , m_canTLS(false)
  , m_useTLS(ssl)
 #endif
+ , m_exitCount(exitCount)
  , m_fd(-1)
  , m_start(0)
  , m_end(0)
@@ -32,9 +34,14 @@ tcp::tcp(const char *addr, unsigned short default_port, Logit *log
  , m_sourceAddr(NULL)
  , m_debug(debug)
 #ifdef USE_SSL
+#ifdef USE_OPENSSL
  , m_sslMeth(NULL)
  , m_sslCtx(NULL)
  , m_ssl(NULL)
+#else
+ , m_gnutls_session(NULL)
+ , m_gnutls_anoncred(NULL)
+#endif
  , m_isTLS(false)
 #endif
 {
@@ -44,9 +51,11 @@ tcp::tcp(const char *addr, unsigned short default_port, Logit *log
 #ifdef USE_SSL
   if(m_useTLS)
   {
+#ifdef USE_OPENSSL
 //don't seem to need this    SSL_library_init();
     SSLeay_add_ssl_algorithms();
     SSL_load_error_strings();
+#endif
   }
 #endif
 }
@@ -60,6 +69,7 @@ tcp::tcp(int threadNum, const tcp *parent)
  , m_canTLS(false)
  , m_useTLS(parent->m_useTLS)
 #endif
+ , m_exitCount(parent->m_exitCount)
  , m_fd(-1)
  , m_start(0)
  , m_end(0)
@@ -68,9 +78,14 @@ tcp::tcp(int threadNum, const tcp *parent)
  , m_sourceAddr(parent->m_sourceAddr)
  , m_debug(parent->m_debug ? new Logit(*(parent->m_debug), threadNum) : NULL)
 #ifdef USE_SSL
+#ifdef USE_OPENSSL
  , m_sslMeth(NULL)
  , m_sslCtx(NULL)
  , m_ssl(NULL)
+#else
+ , m_gnutls_session(NULL)
+ , m_gnutls_anoncred(NULL)
+#endif
  , m_isTLS(false)
 #endif
 {
@@ -90,6 +105,8 @@ tcp::~tcp()
 
 int tcp::Connect(short port)
 {
+  if(*m_exitCount)
+    return 1;
 #ifdef USE_SSL
   m_canTLS = false;
 #endif
@@ -144,17 +161,10 @@ int tcp::Connect(short port)
     close(m_fd);
     return 1;
   }
-  socklen_t namelen = sizeof(m_connectionSourceAddr);
-  rc = getsockname(m_fd, (struct sockaddr *)&m_connectionSourceAddr, &namelen);
+  socklen_t namelen = sizeof(m_connectionLocalAddr);
+  rc = getsockname(m_fd, (struct sockaddr *)&m_connectionLocalAddr, &namelen);
   if(rc)
     fprintf(stderr, "Can't getsockname!\n");
-/*  if(fcntl(m_fd, F_SETFL, O_NONBLOCK))
-  {
-    fprintf(stderr, "Can't set non-blocking IO.\n");
-    error();
-    close(m_fd);
-    return 2;
-  }*/
   if(m_debug)
     m_debug->reopen();
   m_open = true;
@@ -164,7 +174,7 @@ int tcp::Connect(short port)
 #ifdef USE_SSL
 int tcp::ConnectTLS()
 {
-  m_sslMeth = NULL;
+#ifdef USE_OPENSSL
   m_sslCtx = NULL;
   m_ssl = NULL;
   m_sslMeth = SSLv2_client_method();
@@ -197,10 +207,37 @@ int tcp::ConnectTLS()
     error();
     return 1;
   }
+#else
+  gnutls_anon_allocate_client_credentials(&m_gnutls_anoncred);
+  m_gnutls_session = new gnutls_session_t;
+  // Initialize TLS session
+  gnutls_init (m_gnutls_session, GNUTLS_CLIENT);
+  // Use default priorities
+  gnutls_set_default_priority(*m_gnutls_session); // bug in gnutls interface?
+  // Need to enable anonymous KX specifically
+  const int kx_prio[] = { GNUTLS_KX_ANON_DH, 0 };
+  gnutls_kx_set_priority(*m_gnutls_session, kx_prio);
+  // put the anonymous credentials to the current session
+  gnutls_credentials_set(*m_gnutls_session, GNUTLS_CRD_ANON, m_gnutls_anoncred);
+  gnutls_transport_set_ptr(*m_gnutls_session, (gnutls_transport_ptr_t)m_fd);
+
+  // Perform the TLS handshake
+  if(gnutls_handshake(*m_gnutls_session) < 0)
+  {
+    fprintf(stderr, "Can't gnutls_handshake\n");
+    gnutls_deinit(*m_gnutls_session);
+    gnutls_anon_free_client_credentials(m_gnutls_anoncred);
+    error();
+    return 1;
+  }
+#endif
+  if(*m_exitCount > 1)
+    return 3;
   m_isTLS = true;
 
-// debugging code that may be useful to have around in a commented-out state.
 #if 0
+// openssl debugging code that may be useful to have around
+// in a commented-out state.
   /* Following two steps are optional and not required for
      data exchange to be successful. */
  
@@ -252,10 +289,17 @@ int tcp::disconnect()
 #ifdef USE_SSL
     if(m_isTLS)
     {
+#ifdef USE_OPENSSL
       SSL_shutdown(m_ssl);
       close(m_fd);
       SSL_free(m_ssl);
       SSL_CTX_free(m_sslCtx);
+#else
+      gnutls_bye(*m_gnutls_session, GNUTLS_SHUT_RDWR);
+      close(m_fd);
+      gnutls_deinit(*m_gnutls_session);
+      gnutls_anon_free_client_credentials(m_gnutls_anoncred);
+#endif
       m_isTLS = false;
     }
     else
@@ -277,6 +321,8 @@ ERROR_TYPE tcp::sendData(CPCCHAR buf, int size)
   int rc;
   while(sent != size)
   {
+    if(*m_exitCount > 1)
+      return eCtrl_C;
     rc = poll(&m_poll, 1, 60000);
     if(rc == 0)
     {
@@ -293,7 +339,11 @@ ERROR_TYPE tcp::sendData(CPCCHAR buf, int size)
 #ifdef USE_SSL
     if(m_isTLS)
     {
+#ifdef USE_OPENSSL
       rc = SSL_write(m_ssl, &buf[sent], size - sent);
+#else
+      rc = gnutls_record_send(*m_gnutls_session, &buf[sent], size - sent);
+#endif
     }
     else
 #endif
@@ -347,6 +397,8 @@ int tcp::readLine(char *buf, int bufSize)
   m_poll.events = POLLIN | POLLERR | POLLHUP | POLLNVAL;
   while(1)
   {
+    if(*m_exitCount > 1)
+      return 3;
     int timeout = 60 - (time(NULL) - now);
     int rc;
     if(timeout < 0 || (rc = poll(&m_poll, 1, timeout * 1000)) == 0)
@@ -357,6 +409,8 @@ int tcp::readLine(char *buf, int bufSize)
     }
     if(rc < 0)
     {
+      if(errno == EINTR)
+        continue;
       fprintf(stderr, "Poll error.\n");
       error();
       return eCorrupt;
@@ -364,7 +418,11 @@ int tcp::readLine(char *buf, int bufSize)
 #ifdef USE_SSL
     if(m_isTLS)
     {
+#ifdef USE_OPENSSL
       rc = SSL_read(m_ssl, m_buf, sizeof(m_buf));
+#else
+      rc = gnutls_record_recv(*m_gnutls_session, m_buf, sizeof(m_buf));
+#endif
     }
     else
 #endif
@@ -373,7 +431,6 @@ int tcp::readLine(char *buf, int bufSize)
     }
     if(rc < 0)
     {
-      fprintf(stderr, "Read error.\n");
       error();
       return eSocket;
     }
@@ -463,6 +520,8 @@ int tcp::doAllWork(int rate)
         return -rc;
     }
  
+    if(*m_exitCount > 1)
+      return -1;
     rc = pollRead();
     if(rc)
       return rc;

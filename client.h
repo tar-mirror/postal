@@ -11,8 +11,8 @@ class Mutex;
 class client : public tcp
 {
 public:
-  client(const char *addr, const char *ourAddr, UserList &ul, int processes
-    , int msgsPerConnection, Logit *log
+  client(int *exitCount, const char *addr, const char *ourAddr, UserList &ul
+       , int processes, int msgsPerConnection, Logit *log
 #ifdef USE_SSL
     , int ssl
 #endif

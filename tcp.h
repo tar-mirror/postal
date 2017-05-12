@@ -17,24 +17,28 @@ class Logit;
 class address;
 
 #ifdef USE_SSL
+#ifdef USE_OPENSSL
 #ifndef TCP_BODY
 struct SSL_METHOD;
 struct SSL_CTX;
 struct SSL;
 struct X509;
-#else
+#else // TCP_BODY
 #include <openssl/crypto.h>
 #include <openssl/x509.h>
 #include <openssl/pem.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#endif
-#endif
+#endif // TCP_BODY
+#else // USE_OPENSSL
+#include <gnutls/gnutls.h>
+#endif // USE_OPENSSL
+#endif // USE_SSL
 
 class tcp : public Thread
 {
 public:
-  tcp(const char *addr, unsigned short default_port, Logit *log
+  tcp(int *exitCount, const char *addr, unsigned short default_port, Logit *log
 #ifdef USE_SSL
     , int ssl
 #endif
@@ -73,11 +77,12 @@ protected:
 
   int m_destAffinity;
   Logit *m_log;
-  struct sockaddr_in m_connectionSourceAddr;
+  struct sockaddr_in m_connectionLocalAddr;
 #ifdef USE_SSL
   bool m_canTLS;
   int m_useTLS;
 #endif
+  int *m_exitCount;
 
 private:
   int m_fd;
@@ -88,11 +93,20 @@ private:
   bool m_open;
   address *m_addr; // destination
   address *m_sourceAddr;
-  Logit *m_debug; // debug file management object (NULL if no debugging)
+  // debug file management object (NULL if no debugging)
+  // if used a new Logit object is created for each instance unlike the 
+  // m_log instance
+  Logit *m_debug;
+
 #ifdef USE_SSL
+#ifdef USE_OPENSSL
   SSL_METHOD *m_sslMeth;
   SSL_CTX* m_sslCtx;
   SSL *m_ssl;
+#else
+  gnutls_session_t *m_gnutls_session;
+  gnutls_anon_client_credentials_t m_gnutls_anoncred;
+#endif
   bool m_isTLS;
 #endif
 

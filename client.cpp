@@ -34,7 +34,6 @@ void clientResults::imap_connection()
   Lock l(m_mut);
   m_connections++;
   m_imap_connections++;
-  m_pollPrint();
 }
 
 Thread *client::newThread(int threadNum)
@@ -82,14 +81,14 @@ int client::action(PVOID)
   }
 }
 
-client::client(const char *addr, const char *ourAddr, UserList &ul
-       , int processes, int msgsPerConnection, Logit *log
+client::client(int *exitCount, const char *addr, const char *ourAddr
+       , UserList &ul, int processes, int msgsPerConnection, Logit *log
 #ifdef USE_SSL
        , int ssl
 #endif
        , TRISTATE qmail_pop, int imap, int downloadPercent, int deletePercent
        , Logit *debug)
- : tcp(addr, 110, log
+ : tcp(exitCount, addr, 110, log
 #ifdef USE_SSL
      , ssl
 #endif
@@ -459,7 +458,6 @@ void client::getUser(string &user, string &pass)
 
 int client::pollRead()
 {
-  m_res->pollPrint();
   return 0;
 }
 

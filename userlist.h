@@ -17,14 +17,10 @@ typedef vector<string> STR_VEC;
 
 #include "postal.h"
 
-class NameExpand;
-
 class UserList
 {
 public:
-  UserList(const char *userListFile
-         , const char *conversionFile
-         , bool usePassword = false);
+  UserList(const char *userListFile, bool usePass, bool stripDom = false);
   UserList(UserList &list);
   ~UserList();
 
@@ -36,7 +32,6 @@ public:
 private:
   STR_VEC *m_users;
   STR_VEC *m_passwords;
-  NameExpand *m_exp;
   unsigned int m_index;
   size_t m_maxNameLen;
   bool m_primary;

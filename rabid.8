@@ -7,8 +7,8 @@ rabid \- program to test POP server throughput.
 .I [\-r max\-connections\-per\-minute] [\-p processes] [\-l local\-address]
 .I [\-c messages\-per\-connection] [\-a] [\-s ssl\-percentage] [\-i imap\-percentage]
 .I [\-b qmail\-pop] [\-d download\-percentage[:delete\-percentage]]
-.I [\-[z|Z] debug\-file]
-.I pop\-server user\-list\-filename conversion\-filename
+.I [\-[z|Z] debug\-file] [\-u]
+.I pop\-server user\-list\-filename
 
 .SH "DESCRIPTION"
 This manual page documents briefly the
@@ -34,15 +34,6 @@ The
 is the name of a file which contains a list of user's email addresses and
 passwords.  It will have one address per line and the password follows the
 address with a space to seperate.
-.P
-If a
-.B conversion\-filename
-is specified then the names in this file will be taken as a template and
-expanded to make the real names (NB the passwords are not expanded).
-.P
-See the
-.B postal (8)
-man page for details of the expansion process.
 .P
 The
 .B processes
@@ -103,6 +94,16 @@ allows you to specify what percentage of the messages are downloaded and what
 percentage of the downloaded messages are deleted.  Default is 100%.
 .P
 The
+.B \-u
+switch causes the domain of user-names to be ignored.  This allows you to have
+a single file with user-names and passwords which can be used by postal and
+rabid.  By default postal will ignore the password field, rabid may or may not
+need the domain depending on the configuration of the POP server.  The default
+is to use the domain (which is required if the same user is present in
+multiple domains), this switch causes the domain part to be stripped from the
+user-name field.
+.P
+The
 .B \-z
 switch allows you to specify a debugging file base.  From this base one file
 is created for each thread (with a ':' and the thread number appended), each
@@ -133,4 +134,4 @@ Russell Coker <russell@coker.com.au>.
 
 
 .SH "SEE ALSO"
-.BR postal (8), regex (7)
+.BR postal (8), bhm (8)

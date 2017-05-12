@@ -59,8 +59,11 @@ bool Logit::reopen()
 
 Logit::~Logit()
 {
-  fflush(m_fp);
-  fclose(m_fp);
+  if(m_fp)
+  {
+    fflush(m_fp);
+    fclose(m_fp);
+  }
 }
 
 int Logit::Write(const char *data, size_t len)

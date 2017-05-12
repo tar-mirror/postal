@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(postal.cpp)
 AC_CONFIG_HEADER(conf.h)
 AC_SUBST(version)
-version="0.62"
+version="0.65"
 
 AC_ARG_ENABLE(stripping,
       [  --disable-stripping  disables stripping of installed binaries],
@@ -14,9 +14,12 @@ else
   stripping="-s"
 fi
 
-AC_ARG_ENABLE(ssl,
-      [  --disable-ssl  disables ssl support],
-      DISABLESSL=$sslval, DISABLESSL=no)
+AC_ARG_ENABLE(openssl,
+      [  --disable-openssl  disables openssl support],
+      DISABLEOPENSSL=$opensslval, DISABLEOPENSSL=no)
+AC_ARG_ENABLE(gnutls,
+      [  --disable-gnutls  disables gnutls support],
+      DISABLEGNUTLS=$gnutlsval, DISABLEGNUTLS=no)
 
 dnl Checks for programs.
 AC_LANG_CPLUSPLUS
@@ -71,18 +74,35 @@ dnl Checks for library -l socket.
 AC_CHECK_LIB(socket, bind, extra_ldflags="$extra_ldflags -lsocket -lnsl")
 
 dnl Checks for header files.
-AC_SUBST(ssl)
+AC_SUBST(gnutls)
+AC_SUBST(openssl)
 AC_SUBST(extra_objs)
-if [[ "$DISABLESSL" = "no" ]]; then
-  AC_CHECK_HEADER(openssl/crypto.h, SSL=yes, SSL=no)
+if [[ "$DISABLEGNUTLS" = "no" ]]; then
+  AC_CHECK_HEADER(gnutls/gnutls.h, GNUTLS=yes, GNUTLS=no)
 else
-  SSL=no
+  GNUTLS=no
 fi
-if [[ "$SSL" = "no" ]]; then
-  ssl=""
-  extra_objs="md5.o"
+if [[ "$GNUTLS" = "yes" ]]; then
+  DISABLEOPENSSL=yes
+fi
+if [[ "$DISABLEOPENSSL" = "no" ]]; then
+  AC_CHECK_HEADER(openssl/crypto.h, OPENSSL=yes, OPENSSL=no)
 else
-  ssl="#define USE_SSL"
+  OPENSSL=no
+fi
+if [[ "$OPENSSL" = "no" ]]; then
+  extra_objs="md5.o"
+fi
+if [[ "$GNUTLS" = "no" ]]; then
+  gnutls=""
+else
+  gnutls="#define USE_GNUTLS"
+  extra_ldflags="$extra_ldflags -lgnutls"
+fi
+if [[ "$OPENSSL" = "no" ]]; then
+  openssl=""
+else
+  openssl="#define USE_OPENSSL"
   extra_ldflags="$extra_ldflags -lssl -lcrypto"
 fi
 

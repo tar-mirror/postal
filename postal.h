@@ -8,8 +8,17 @@ typedef enum
   eNONE
 } TRISTATE;
 
-#define VER_STR "0.62"
+#define VER_STR "0.65"
+
+#define USE_GNUTLS
+#ifdef USE_GNUTLS
+#define GNUTLS_VER "1.4.4"
 #define USE_SSL
+#endif
+#ifdef USE_OPENSSL
+#define USE_SSL
+#endif
+
 #define LINUX_PTHREAD
 
 
@@ -20,7 +29,7 @@ typedef enum
 
 #include <stdio.h>
 
-#define MAX_PROCESSES 200
+#define MAX_PROCESSES 400
 #define MAX_MSG_SIZE 40960
 // The amount of time between updates to the shared memory region for random
 // data.

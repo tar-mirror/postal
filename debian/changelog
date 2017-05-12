@@ -1,3 +1,41 @@
+postal (0.65) unstable; urgency=low
+
+  * Added new program bhm to listen on port 25 and send mail to /dev/null.
+    This allows testing mail relay systems.
+  * Fixed a minor bug in reporting when compiled without SSL.
+  * Made postal write the date header in correct RFC2822 format.
+  * Removed the name-expansion feature, it confused many people and is not
+    needed now that desktop machines typically have 1G of RAM.
+    Now postal and rabid can have the same user-list file.
+  * Moved postal-list into the bin directory.
+  * Changed the thread stack size to 32K (used to be the default of 10M) to
+    save virtual memory size (not that this makes much difference to
+    anything other than the maximum number of threads on i386).
+  * Added a minimum message size option to Postal.
+  * Added a Postal option to specify a list of sender addresses separately to
+    the list of recipient addresses.
+  * Removed some unnecessary error messages.
+  * Handle EINTR to allow ^Z and "bg" from the command line.  I probably
+    don't handle all cases, but now that I agree that failure to handle ^Z is
+    an error I expect bug reports.
+  * Made the test programs display output on the minute, previously they
+    displayed once per minute (EG 11:10:35) while now it will be 11:10:00.
+    This also means that the first minute reported will have something less
+    than 60 seconds of data - this does not matter as a mail server takes
+    longer than that to get up to speed.
+  * Added support for GNUTLS and made the Debian package build with it.
+    Note that BHM doesn't yet work correctly with TLS.
+  * Made the programs exit cleanly.
+
+ -- Russell Coker <russell@coker.com.au>  Thu, 18 Jan 2007 08:14:00 +1100
+
+postal (0.62.1) unstable; urgency=low
+
+  * NMU
+  * Build-Depend: libssl-dev, not libssl096-dev.  Closes: #176956
+
+ -- LaMont Jones <lamont@debian.org>  Sun, 25 May 2003 21:33:07 -0600
+
 postal (0.62) unstable; urgency=high
 
   * Added an INSTALL document.

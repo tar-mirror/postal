@@ -4,10 +4,10 @@ postal \- program to test SMTP mail server throughput.
 
 .SH "SYNOPSIS"
 .B postal
-.I [\-m maximum\-message\-size] [\-p processes]
+.I [\-m maximum\-message\-size] [\-M minimum\-message\-size] [\-t threads]
 .I [\-c messages\-per\-connection] [\-r messages\-per\-minute] [\-s ssl\-percentage]
 .I [\-l local\-address] [\-a] [\-b [no]netscape] [\-[z|Z] debug\-file]
-.I smtp\-server user\-list\-filename conversion\-filename
+.I [\-f sender\-file] smtp\-server user\-list\-filename
 
 .SH "DESCRIPTION"
 This manual page documents briefly the
@@ -15,8 +15,7 @@ This manual page documents briefly the
 program.
 .P
 It is designed to test the performance of SMTP email servers by sending random
-messages to the specified server as fast as possible.  A future version will
-support rate limiting to provide a constant load (for testing POP or IMAP).
+messages to the specified server as fast as possible.
 .P
 The
 .B smtp\-server
@@ -28,7 +27,10 @@ want to specify a port other than port 25 then enclose the host address in
 square brackets and have the port address immidiately following.  If you want
 a DNS lookup for every connection (for testing round\-robin DNS) then
 immediately preceed the host address with a '+' character.  To specify multiple
-servers for round\-robin use then seperate the addresses with commas.
+servers for round\-robin use then seperate the addresses with commas.  Note
+that
+.B localhost
+is used for connecting to the same machine.
 .P
 The
 .B user\-list\-filename
@@ -36,27 +38,13 @@ is the name of a file which contains a list of user's email addresses.  This
 can be just user\-names or fully qualified email addresses.  Whatever you
 specify will be sent exactly in the SMTP protocol so make sure you do whatever
 is appropriate.  If unsure then use fully qualified addresses (IE
-user@domain).  If a
-.B conversion\-filename
-is specified then the names in this file will be taken as a template and
-expanded to make the real names.
+user@domain).
 .P
 The
-.B conversion\-filename
-parameter will either be "\-" (for no conversions) or the name of a file
-containing the conversions to apply to email addresses.  Each line in the
-file can either be a comment (starting with "#") or is to contain two
-parameters.  The first parameter is the regular expression.  For each email
-that is to be sent a randomly selected user\-name will be checked against all
-regular expressions, the first match will determine the translation that is
-to be applied.  The translation will be the second parameter on the line.  It
-will contain a number of "." characters specifying characters in the name that
-are not to be translated.  To specify the translations a range of characters
-can be specified inside square brackets.  For example to have every address
-starting with "a" have a character from "01234567890abc" as it's second
-character and a character from "xyz" as it's third character you would have the
-following:
-.B ^a .[0\-9abc][xyz]
+.B sender\-file
+contains a list of users that will be in the From: field and envelope sender
+of the messages.  If it is not specified then the user\-list\-filename will
+be used for the sender list.
 .P
 The
 .B maximum\-message\-size
@@ -66,8 +54,8 @@ and the maximum size.  Specify "0" if you want just headers to test the
 connection rate.  The default value is 10.
 .P
 The
-.B processes
-parameter is the number of processes that should be forked off to attempt
+.B threads
+parameter is the number of threads that should be created to attempt
 seperate connections.  A well configured mail server won't accept an unlimited
 number of connections so make sure you don't specify a number larger than the
 number your mail server is configured to handle.  Also for sensible results
@@ -75,9 +63,9 @@ make sure that you don't use enough to make your server thrash as the results
 won't be representative of real\-world use.  The default value is 1, this
 default is not suitable for real tests, it's just for testing your
 configuration.  If you specify multiple server addresses for round\-robin use
-then this number of processes will be created per server, IE 4 servers and
+then this number of threads will be created per server, IE 4 servers and
 .B \-p5
-will give 20 processes total.
+will give 20 threads total.
 .P
 The
 .B messages\-per\-connection
@@ -157,4 +145,4 @@ This program, it's manual page, and the Debian package were written by
 Russell Coker <russell@coker.com.au>.
 
 .SH "SEE ALSO"
-.BR postal\-list (8), rabid (8), regex (7)
+.BR bhm (8), postal\-list (8), rabid (8)

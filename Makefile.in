@@ -1,7 +1,9 @@
-EXE=postal postal-list rabid
-MAN8=postal-list.8 postal.8 rabid.8
+SEXE=postal rabid bhm
+EXE=postal-list
+MAN8=postal.8 rabid.8 bhm.8
+MAN1=postal-list.1
 
-all: $(EXE)
+all: $(EXE) $(SEXE)
 
 prefix=@prefix@
 eprefix=@exec_prefix@
@@ -13,11 +15,11 @@ CC=@CC@ $(CFLAGS) -O2 -g $(WFLAGS)
 INSTALL=@INSTALL@
 
 TESTEXE=ex-test
-BASEOBJS=expand.o userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
+BASEOBJS=userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o expand.o @extra_objs@
 LFLAGS=-lstdc++ @extra_ldflags@
 
 
-ALLOBJS=$(BASEOBJS) smtp.o client.o
+ALLOBJS=$(BASEOBJS) smtp.o client.o basictcp.o bhmusers.o
 
 postal: postal.cpp $(BASEOBJS) postal.h smtp.o
 	$(CXX) postal.cpp $(BASEOBJS) smtp.o -o postal $(LFLAGS)
@@ -25,19 +27,24 @@ postal: postal.cpp $(BASEOBJS) postal.h smtp.o
 rabid: rabid.cpp $(BASEOBJS) postal.h client.o
 	$(CXX) rabid.cpp $(BASEOBJS) client.o -o rabid $(LFLAGS)
 
+bhm: bhm.cpp userlist.o basictcp.o logit.o results.o mutex.o bhmusers.o postal.h
+	$(CXX) bhm.cpp userlist.o basictcp.o logit.o results.o mutex.o bhmusers.o -o bhm $(LFLAGS)
+
 ex-test: ex-test.cpp expand.o
 	$(CXX) ex-test.cpp expand.o -o ex-test $(LFLAGS)
 
 postal-list: postal-list.cpp expand.o
 	$(CXX) postal-list.cpp expand.o -o postal-list $(LFLAGS)
 
-install-bin: $(EXE)
-	mkdir -p $(eprefix)/sbin
-	@INSTALL_PROGRAM@ @stripping@ $(EXE) $(eprefix)/sbin
+install-bin: $(EXE) $(SEXE)
+	mkdir -p $(eprefix)/sbin $(eprefix)/bin
+	@INSTALL_PROGRAM@ @stripping@ $(SEXE) $(eprefix)/sbin
+	@INSTALL_PROGRAM@ @stripping@ $(EXE) $(eprefix)/bin
 
 install: install-bin
-	mkdir -p @mandir@/man8
+	mkdir -p @mandir@/man8 @mandir@/man1
 	@INSTALL_DATA@ $(MAN8) @mandir@/man8
+	@INSTALL_DATA@ $(MAN1) @mandir@/man1
 
 %.o: %.cpp %.h postal.h
 	$(CXX) -c $<
@@ -46,7 +53,7 @@ install: install-bin
 	$(CC) -c $<
 
 clean:
-	rm -f $(EXE) $(TESTEXE) $(ALLOBJS) md5.o build-stamp install-stamp
+	rm -f $(EXE) $(SEXE) $(TESTEXE) $(ALLOBJS) md5.o build-stamp install-stamp
 	rm -rf debian/tmp core debian/*.debhelper
 	rm -f debian/{substvars,files} config.log
 

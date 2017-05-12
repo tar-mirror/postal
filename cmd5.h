@@ -3,7 +3,7 @@
 
 extern "C"
 {
-#ifdef USE_SSL
+#ifdef USE_OPENSSL
 #include <openssl/md5.h>
 #else
 #include "md5.h"
@@ -31,7 +31,6 @@ public:
 
 private:
   MD5_CTX m_context;
-
 };
 
 #endif

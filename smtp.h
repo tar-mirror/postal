@@ -20,6 +20,7 @@ class UserList;
 
 #define MAP_SIZE 8 * 1024
 
+// Comparison operator for hash map of names to unsigned longs
 struct eqlng
 {
   bool operator()(unsigned long l1, unsigned long l2) const
@@ -63,6 +64,8 @@ private:
   // time of the last randomise
   time_t m_timeLastAction;
   char m_randBuf[MAP_SIZE];
+
+  // Map of IP addresses to names
   NAME_MAP m_names;
 
   smtpData(const smtpData&);
@@ -72,13 +75,13 @@ private:
 class smtp : public tcp
 {
 public:
-  smtp(const char *addr, const char *ourAddr
-     , UserList &ul, int msgSize, int numMsgsPerConnection, int processes
-     , Logit *log, TRISTATE netscape
+  smtp(int *exitCount, const char *addr, const char *ourAddr
+     , UserList &ul, UserList *senderList, int minMsgSize, int maxMsgSize
+     , int numMsgsPerConnection, int processes, Logit *log, TRISTATE netscape
 #ifdef USE_SSL
      , int ssl
 #endif
-     , Logit *debug);
+     , unsigned short port, Logit *debug);
 
   virtual ~smtp();
 
@@ -104,13 +107,14 @@ private:
   virtual void sentData(int bytes);
   virtual void receivedData(int);
 
-  UserList &m_ul;
-  const int m_msgSize;
+  UserList &m_ul, *m_senderList;
+  const int m_minMsgSize, m_maxMsgSize;
   smtpData *m_data;
   int m_msgsPerConnection;
   results *m_res;
   TRISTATE m_netscape;
   string m_helo;
+  time_t m_nextPrint;
 
   smtp(const smtp&);
   smtp & operator=(const smtp&);

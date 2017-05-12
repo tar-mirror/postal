@@ -14,16 +14,20 @@ public:
   void dataBytes(int bytes);
   void message();
   void connection();
+#ifdef USE_SSL
   void ssl();
+#endif
 
-  void pollPrint();
+  void print();
 
 protected:
   virtual void childPrint();
   int m_connections;
+#ifdef USE_SSL
   int m_ssl_connections;
+#endif
 
-  void m_pollPrint(bool mustPrint = false);
+  void m_print();
 
   Mutex m_mut;
 private:
@@ -31,7 +35,6 @@ private:
   int m_msgs;
   int m_bytes;
   int m_errors;
-  time_t m_timeLastAction;
 };
 
 #endif

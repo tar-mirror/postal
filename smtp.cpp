@@ -69,13 +69,20 @@ string smtpData::randomString(int max_len) const
   return str;
 }
 
+// Return a random date that may be as much as 60 seconds in the future or 600 seconds in the past.
 string smtpData::date() const
 {
   time_t t = time(NULL);
+  struct tm broken;
+  // "Date: Day, dd Mon yyyy hh:mm:ss +zzzz\r\n"
+  char date_buf[44];
+
   t += 60 - random() % 600;
-  string str = string("Date: ") + ctime(&t);
-  str.insert(str.size() - 1, "\r");
-  return str;
+
+  if(!gmtime_r(&t, &broken) || !strftime(date_buf, sizeof(date_buf), "Date: %a, %d %b %Y %H:%M:%S %z\r\n", &broken))
+    return string("Error making date\r\n");
+  
+  return string(date_buf);
 }
 
 Thread *smtp::newThread(int threadNum)
@@ -117,6 +124,8 @@ int smtp::action(PVOID)
         msgs = 0;
       for(int i = 0; i != msgs; i++)
       {
+        if(*m_exitCount)
+          return 1;
         rc = sendMsg();
         if(rc > 1)
           return 1;
@@ -135,24 +144,28 @@ int smtp::action(PVOID)
   }
 }
 
-smtp::smtp(const char *addr, const char *ourAddr
-         , UserList &ul, int msgSize, int numMsgsPerConnection
+smtp::smtp(int *exitCount, const char *addr, const char *ourAddr, UserList &ul
+         , UserList *senderList, int minMsgSize, int maxMsgSize
+         , int numMsgsPerConnection
          , int processes, Logit *log, TRISTATE netscape
 #ifdef USE_SSL
          , int ssl
 #endif
-         , Logit *debug)
- : tcp(addr, 25, log
+         , unsigned short port, Logit *debug)
+ : tcp(exitCount, addr, port, log
 #ifdef USE_SSL
      , ssl
 #endif
      , ourAddr, debug)
  , m_ul(ul)
- , m_msgSize(msgSize)
+ , m_senderList(senderList ? senderList : &ul)
+ , m_minMsgSize(minMsgSize * 1024)
+ , m_maxMsgSize(maxMsgSize * 1024)
  , m_data(new smtpData())
  , m_msgsPerConnection(numMsgsPerConnection)
  , m_res(new results)
  , m_netscape(netscape)
+ , m_nextPrint(time(NULL)/60*60+60)
 {
   go(NULL, processes);
 }
@@ -160,11 +173,14 @@ smtp::smtp(const char *addr, const char *ourAddr
 smtp::smtp(int threadNum, const smtp *parent)
  : tcp(threadNum, parent)
  , m_ul(parent->m_ul)
- , m_msgSize(parent->m_msgSize)
+ , m_senderList(parent->m_senderList)
+ , m_minMsgSize(parent->m_minMsgSize)
+ , m_maxMsgSize(parent->m_maxMsgSize)
  , m_data(parent->m_data)
  , m_msgsPerConnection(parent->m_msgsPerConnection)
  , m_res(parent->m_res)
  , m_netscape(parent->m_netscape)
+ , m_nextPrint(0)
 {
 }
 
@@ -198,7 +214,7 @@ int smtp::Connect()
   rc = readCommandResp();
   if(rc)
     return rc;
-  const string *mailName = m_data->getMailName(m_connectionSourceAddr);
+  const string *mailName = m_data->getMailName(m_connectionLocalAddr);
   m_helo = string("EHLO ") + *mailName + "\r\n";
   rc = sendCommandString(m_helo);
   if(rc)
@@ -217,8 +233,10 @@ int smtp::sendMsg()
 {
   int rc;
   int size = 0;
-  if(m_msgSize)
-    size = random() % (m_msgSize * 1024);
+  if(m_maxMsgSize > m_minMsgSize)
+    size = random() % (m_maxMsgSize - m_minMsgSize) + m_minMsgSize;
+  else
+    size = m_maxMsgSize;
   m_md5.init();
   string logData;
   bool logAll = false;
@@ -230,7 +248,7 @@ int smtp::sendMsg()
   if(rc != 1)
     return 1;
 
-  string from = string("<") + m_ul.randomUser() + '>';
+  string from = string("<") + m_senderList->randomUser() + '>';
   string to = string("<") + m_ul.randomUser() + '>';
   rc = sendCommandString(string("MAIL FROM: ") + from + "\r\n");
   if(rc)
@@ -321,11 +339,29 @@ ERROR_TYPE smtp::readCommandResp()
 int smtp::pollRead()
 {
   m_data->setRand(RAND_TIME);
-  m_res->pollPrint();
+  if(time(NULL) >= m_nextPrint)
+  {
+    m_res->print();
+    m_nextPrint += 60;
+  }
   return 0;
 }
 
 int smtp::WriteWork(PVOID buf, int size, int timeout)
 {
-  return Write(buf, size, timeout);
+  int t1 = time(NULL);
+  if(t1 + timeout > m_nextPrint)
+    timeout = m_nextPrint - t1;
+  if(timeout < 0)
+    timeout = 0;
+  int rc = Write(buf, size, timeout);
+  int t2 = time(NULL);
+  if(t2 < t1 + timeout)
+  {
+    struct timespec req;
+    req.tv_sec = t1 + timeout - t2;
+    req.tv_nsec = 0;
+    nanosleep(&req, NULL);
+  }
+  return rc;
 }

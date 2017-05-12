@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "thread.h"
 #include <stdio.h>
+#include <errno.h>
 
 #ifdef NON_UNIX
 
@@ -116,9 +117,9 @@ void Thread::go(PVOID param, int num)
   m_readPoll.fd = m_parentRead;
   m_writePoll.fd = m_parentWrite;
   pthread_attr_t attr;
-  if(pthread_attr_init(&attr))
-    fprintf(stderr, "Can't init thread attributes.\n");
-  if(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE))
+  if(pthread_attr_init(&attr)
+   || pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE)
+   || pthread_attr_setstacksize(&attr, 32*1024))
     fprintf(stderr, "Can't set thread attributes.\n");
 #endif
 
@@ -205,12 +206,16 @@ int Thread::Write(PVOID buf, int size, int timeout)
 #ifndef NON_UNIX
   if(timeout)
   {
-    int rc = poll(&m_writePoll, 1, timeout * 1000);
-    if(rc < 0)
+    int rc;
+    do
     {
-      fprintf(stderr, "Can't poll write ITC.\n");
-      return -1;
-    }
+      rc = poll(&m_writePoll, 1, timeout * 1000);
+      if(rc < 0 && errno != EINTR)
+      {
+        fprintf(stderr, "Can't poll write ITC.\n");
+        return -1;
+      }
+    } while(rc == -1);
     if(!rc)
       return 0;
   }
