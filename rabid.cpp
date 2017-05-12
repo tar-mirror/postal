@@ -35,9 +35,10 @@ int main(int argc, char **argv)
   int ssl = 0;
 #endif
   int imap = 0;
+  TRISTATE qmail_pop = eNONE;
 
   int c;
-  while(-1 != (c = getopt(argc, argv, "ac:i:l:p:r:s:")) )
+  while(-1 != (c = getopt(argc, argv, "ab:c:i:l:p:r:s:")) )
   {
     switch(char(c))
     {
@@ -47,6 +48,10 @@ int main(int argc, char **argv)
       break;
       case 'a':
         logAll = true;
+      break;
+      case 'b':
+        if(!strcasecmp(optarg, "qmail-pop"))
+          qmail_pop = eWONT;
       break;
       case 'c':
         msgsPerConnection = atoi(optarg);
@@ -80,7 +85,7 @@ int main(int argc, char **argv)
 #endif
   if(imap < 0 || imap > 100)
     usage();
-  if(optind + 3 > argc)
+  if(optind + 3 != argc)
     usage();
 
   UserList ul(argv[optind + 1], argv[optind + 2], true);
@@ -100,7 +105,7 @@ int main(int argc, char **argv)
     printf("Unable to get name of this host.\n");
     return 1;
   }
-#ifdef LINUX
+#ifdef DOMAINNAME
   string name = uts.nodename;
   if(strlen(uts.domainname))
   {
@@ -118,7 +123,7 @@ int main(int argc, char **argv)
 #ifdef USE_SSL
               , ssl
 #endif
-              , imap);
+              , qmail_pop, imap);
 
   return popper.doAllWork(connectionsPerMinute);
 }

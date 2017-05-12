@@ -81,7 +81,7 @@ client::client(const char *addr, const char *ourAddr, UserList &ul
 #ifdef USE_SSL
        , int ssl
 #endif
-       , int imap)
+       , TRISTATE qmail_pop, int imap)
  : tcp(addr, 110, log
 #ifdef USE_SSL
      , ssl
@@ -94,6 +94,8 @@ client::client(const char *addr, const char *ourAddr, UserList &ul
  , m_res(new clientResults)
  , m_msgsPerConnection(msgsPerConnection)
  , m_useIMAP(imap)
+ , m_isIMAP(false)
+ , m_qmail_pop(qmail_pop)
 {
   go(NULL, processes);
 }
@@ -107,6 +109,7 @@ client::client(int threadNum, const client *parent)
  , m_res(parent->m_res)
  , m_msgsPerConnection(parent->m_msgsPerConnection)
  , m_useIMAP(parent->m_useIMAP)
+ , m_qmail_pop(parent->m_qmail_pop)
 {
 }
 
@@ -139,7 +142,7 @@ void client::error()
   tcp::disconnect();
 }
 
-int client::readCommandResp()
+int client::readCommandResp(bool important)
 {
   char recvBuf[1024];
   int rc;
@@ -156,9 +159,12 @@ int client::readCommandResp()
     if(strncmp(recvBuf, m_imapIDtxt, strlen(m_imapIDtxt))
        || strncmp(&recvBuf[strlen(m_imapIDtxt)], "OK", 2) )
     {
-      strtok(recvBuf, "\r\n");
-      printf("Server error:%s.\n", recvBuf);
-      error();
+      if(important)
+      {
+        strtok(recvBuf, "\r\n");
+        printf("Server error:%s.\n", recvBuf);
+        error();
+      }
       return 1;
     }
   }
@@ -169,9 +175,12 @@ int client::readCommandResp()
       return rc;
     if(recvBuf[0] != '+')
     {
-      strtok(recvBuf, "\r\n");
-      printf("Server error:%s.\n", recvBuf);
-      error();
+      if(important)
+      {
+        strtok(recvBuf, "\r\n");
+        printf("Server error:%s.\n", recvBuf);
+        error();
+      }
       return 1;
     }
   }
@@ -198,19 +207,21 @@ int client::connectPOP(const string &user, const string &pass)
   rc = readCommandResp();
   if(rc)
     return rc;
-  rc = sendCommandString("CAPA\r\n");
+  rc = sendCommandString("CAPA\r\n", false);
   if(rc > 1)
     return rc; // not supporting CAPA is OK.
   string u("user ");
   u += user;
   u += "\r\n";
   rc = sendCommandString(u);
+//printf("%s\n", u.c_str());
   if(rc)
     return rc;
   string p("pass ");
   p += pass;
   p += "\r\n";
   rc = sendCommandString(p);
+//printf("%s\n", p.c_str());
   if(rc)
     return rc;
   return 0;
@@ -335,8 +346,11 @@ int client::getMsg(int num, const string &user, bool log)
     case eEnd:
       if(strcmp(buf, ".\r\n"))
       {
-        fprintf(stderr, "End of message data but not end of POP data.\n");
-        md5Error = true;
+        if(strcmp(buf, "\r\n") && m_qmail_pop != eWONT)
+        {
+          fprintf(stderr, "End of message data but not end of POP data.\n");
+          md5Error = true;
+        }
       }
     break;
     }
@@ -419,7 +433,7 @@ int client::WriteWork(PVOID buf, int size, int timeout)
   return Write(buf, size, timeout);
 }
 
-int client::sendCommandString(const string &s)
+int client::sendCommandString(const string &s, bool important)
 {
   if(m_isIMAP)
   {
@@ -427,7 +441,7 @@ int client::sendCommandString(const string &s)
     sprintf(m_imapIDtxt, "%d ", m_imapID);
     string command(m_imapIDtxt);
     command += s;
-    return sendCommandData(command.c_str(), command.size());
+    return sendCommandData(command.c_str(), command.size(), important);
   }
-  return sendCommandData(s.c_str(), s.size());
+  return sendCommandData(s.c_str(), s.size(), important);
 }

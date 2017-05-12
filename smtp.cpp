@@ -268,7 +268,7 @@ int smtp::sendMsg()
   return 0;
 }
 
-int smtp::readCommandResp()
+int smtp::readCommandResp(bool important)
 {
   char recvBuf[1024];
   do

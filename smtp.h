@@ -71,7 +71,7 @@ private:
   int pollRead();
   virtual int WriteWork(PVOID buf, int size, int timeout);
 
-  virtual int readCommandResp();
+  virtual int readCommandResp(bool important = true);
   void error();
   virtual void sentData(int bytes);
   virtual void receivedData(int bytes);

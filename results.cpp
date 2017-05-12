@@ -71,7 +71,7 @@ void results::m_pollPrint(bool mustPrint)
     tm *t = localtime(&now);
     printf("%02d:%02d,%d,%d,%d", t->tm_hour, t->tm_min, m_msgs
                                , m_bytes / 1024, m_errors);
-    printf("%d,%d" , m_connections, m_ssl_connections);
+    printf(",%d,%d", m_connections, m_ssl_connections);
     childPrint();
     printf("\n");
     fflush(NULL);

@@ -1,3 +1,4 @@
+#include "postal.h"
 #include "cmd5.h"
 #include <stdio.h>
 

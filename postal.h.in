@@ -9,8 +9,8 @@ typedef enum
 } TRISTATE;
 
 #define VER_STR "0.52"
-#define USE_SSL
-#define LINUX_PTHREAD
+@ssl@
+@linux_pthread@
 #define MAX_PROCESSES 200
 #define MAX_MSG_SIZE 40960
 // The amount of time between updates to the shared memory region for random

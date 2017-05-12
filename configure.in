@@ -1,0 +1,44 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(postal.cpp)
+
+dnl AM_CONFIG_HEADER(config.h)
+
+dnl Checks for programs.
+AC_PROG_CXX
+AC_PROG_CPP
+AC_PROG_INSTALL
+
+dnl Checks for libraries.
+dnl Replace `main' with a function in -lsocket:
+dnl AC_CHECK_LIB(socket, main)
+
+dnl Checks for header files.
+AC_SUBST(ssl)
+AC_SUBST(extra_libs)
+AC_SUBST(extra_objs)
+AC_CHECK_HEADER(openssl/crypto.h,
+      ssl="#define USE_SSL" extra_libs="-lssl -lcrypto"
+             , extra_objs="md5.o")
+
+AC_SUBST(domainname)
+AC_TRY_COMPILE(#include <sys/utsname.h>
+     , "struct utsname uts; uts.domainname[0]='a';"
+     , domainname="-DDOMAINNAME")
+
+AC_SUBST(linux_pthread)
+AC_TRY_COMPILE([#define _GNU_SOURCE
+#include <pthread.h>
+] , [pthread_mutexattr_t attr;
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);]
+  , linux_pthread="yes")
+if [[ -n "$linux_pthread" ]]; then
+   linux_pthread="#define LINUX_PTHREAD"
+fi
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_SIZE_T
+
+dnl Checks for library functions.
+
+AC_OUTPUT(Makefile postal.h)

@@ -6,6 +6,7 @@ rabid \- program to test POP server throughput.
 .B rabid
 .I [-r max-connections-per-minute] [-p processes] [-l local-address]
 .I [-c messages-per-connection] [-a] [-s ssl-percentage] [-i imap-percentage]
+.I [-b qmail-pop]
 .I pop-server user-list-filename conversion-filename
 
 .SH "DESCRIPTION"
@@ -87,6 +88,14 @@ Use 0 for no SSL, or 100 for always SSL, or any number in between.  Default is
 The
 .B -i
 switch specifies the percentage of IMAP connections (default is POP).
+.P
+The
+.B -b
+switch allows you to specify breakage strings.  Currently the only option is
+for Qmail POP server which adds an extra blank line at the end of each
+message.
+.B -b qmail-pop
+means to not report this as an error.
 
 .SH BUGS
 Doesn't actually do SSL or IMAP yet.

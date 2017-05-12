@@ -56,9 +56,9 @@ protected:
   virtual void receivedData(int bytes) = 0;
   Cmd5 m_md5;
 
-  virtual int readCommandResp() = 0;
-  int sendCommandData(const char *buf, int size);
-  virtual int sendCommandString(const string &s);
+  virtual int readCommandResp(bool important = true) = 0;
+  int sendCommandData(const char *buf, int size, bool important = true);
+  virtual int sendCommandString(const string &s, bool important = true);
 
   int m_destAffinity;
   Logit *m_log;

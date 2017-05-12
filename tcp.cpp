@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <errno.h>
+#include "postal.h"
 #include "userlist.h"
 #include "address.h"
 #include "logit.h"
@@ -378,17 +379,17 @@ int tcp::readLine(char *buf, int bufSize)
   return 0;
 }
 
-int tcp::sendCommandString(const string &s)
+int tcp::sendCommandString(const string &s, bool important)
 {
-  return sendCommandData(s.c_str(), s.size());
+  return sendCommandData(s.c_str(), s.size(), important);
 }
 
-int tcp::sendCommandData(const char *buf, int size)
+int tcp::sendCommandData(const char *buf, int size, bool important)
 {
   int rc = sendData(buf, size);
   if(rc)
     return rc;
-  return readCommandResp();
+  return readCommandResp(important);
 }
 
 void tcp::endIt()

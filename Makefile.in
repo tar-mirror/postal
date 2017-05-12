@@ -1,15 +1,14 @@
-# Generated automatically from Makefile.in by configure.
 
 PROGRAMS=postal postal-list rabid
 
 all: $(PROGRAMS)
 
-CFLAGS=-DDOMAINNAME
-CXX=c++ $(CFLAGS) -O2 -g -Wall -pipe -Wshadow -Wpointer-arith -Wwrite-strings -Wcast-align -Wcast-qual -Woverloaded-virtual
+CFLAGS=@domainname@
+CXX=@CXX@ $(CFLAGS) -O2 -g -Wall -pipe -Wshadow -Wpointer-arith -Wwrite-strings -Wcast-align -Wcast-qual -Woverloaded-virtual
 
 TESTPROGRAMS=ex-test
-BASEOBJS=expand.o userlist.o forkit.o results.o address.o tcp.o cmd5.o mutex.o logit.o 
-LFLAGS=-lstdc++ -lpthread -lssl -lcrypto
+BASEOBJS=expand.o userlist.o forkit.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
+LFLAGS=-lstdc++ -lpthread @extra_libs@
 
 
 ALLOBJS=$(BASEOBJS) smtp.o client.o

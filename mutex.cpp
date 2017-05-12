@@ -1,11 +1,12 @@
 #define _GNU_SOURCE
+#include "postal.h"
 #include "mutex.h"
 #include <stdio.h>
 
 Mutex::Mutex(bool fastMutex)
 {
   int rc;
-#ifdef LINUX
+#ifdef LINUX_PTHREAD
   if(!fastMutex)
   {
     pthread_mutexattr_t attr;

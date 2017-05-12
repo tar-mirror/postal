@@ -118,7 +118,7 @@ int main(int argc, char **argv)
     return 1;
   }
   string name = uts.nodename;
-#ifdef LINUX
+#ifdef DOMAINNAME
   if(strlen(uts.domainname))
   {
     name += '.';

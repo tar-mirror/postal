@@ -16,7 +16,7 @@ public:
 #ifdef USE_SSL
     , int ssl
 #endif
-    , int imap);
+    , TRISTATE qmail_pop, int imap);
   client(int threadNum, const client *parent);
 
   virtual ~client();
@@ -38,13 +38,13 @@ private:
   virtual int pollRead();
   virtual int WriteWork(PVOID buf, int size, int timeout);
 
-  virtual int readCommandResp();
+  virtual int readCommandResp(bool important = true);
 
   bool checkUser(const char *user);
   void error();
   virtual void sentData(int bytes);
   virtual void receivedData(int bytes);
-  virtual int sendCommandString(const string &s);
+  virtual int sendCommandString(const string &s, bool important = true);
 
   UserList &m_ul;
   int m_maxNameLen;
@@ -57,6 +57,7 @@ private:
   bool m_isIMAP;
   int m_imapID;
   char m_imapIDtxt[9];
+  TRISTATE m_qmail_pop;
 };
 
 #endif
