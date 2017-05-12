@@ -9,16 +9,25 @@
 #include <string>
 #include "cmd5.h"
 #include "thread.h"
+#include <sys/types.h>
 #include <netinet/in.h>
 
 class Logit;
 class address;
 
+#ifdef USE_SSL
 #ifndef TCP_BODY
 struct SSL_METHOD;
 struct SSL_CTX;
 struct SSL;
 struct X509;
+#else
+#include <openssl/crypto.h>
+#include <openssl/x509.h>
+#include <openssl/pem.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif
 #endif
 
 class tcp : public Thread
@@ -84,6 +93,9 @@ private:
   SSL *m_ssl;
   bool m_isTLS;
 #endif
+
+  tcp(const tcp&);
+  tcp & operator=(const tcp&);
 };
 
 #endif

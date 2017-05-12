@@ -1,3 +1,11 @@
+postal (0.57) unstable; urgency=high
+
+  * Added extra compiler checks and fixed many trivial bugs.
+
+  * Fixed some *BSD portability problems, should work on *BSD now.
+
+ -- Russell Coker <russell@coker.com.au>  Thu, 7 Dec 2000 06:58:38 +0100
+
 postal (0.56) unstable; urgency=high
 
   * Fixed a bug in client.cpp that stopped compiling without SSL.
@@ -17,7 +25,7 @@ postal (0.56) unstable; urgency=high
 
   * Added Solaris package manager support.
 
- -- Russell Coker <russell@coker.com.au>  Sun, 8 Oct 2000 14:21:54 +0200
+ -- Russell Coker <russell@coker.com.au>  Sun, 8 Oct 2000 14:21:54 +0100
 
 postal (0.55) unstable; urgency=low
 

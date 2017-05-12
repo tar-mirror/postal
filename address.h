@@ -1,6 +1,7 @@
 #ifndef ADDRESS_H
 #define ADDRESS_H
 
+#include <sys/types.h>
 #include <netinet/in.h>
 struct sockaddr;
 
@@ -19,6 +20,9 @@ private:
   char **m_hostname;
   bool *m_rr_dns;
   int m_count;
+
+  address(const address&);
+  address & operator=(const address&);
 };
 
 #endif

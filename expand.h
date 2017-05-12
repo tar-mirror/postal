@@ -2,6 +2,7 @@
 #define EXPAND_H
 
 #include <string>
+#include <sys/types.h>
 #include <regex.h>
 
 class NamePattern;
@@ -22,6 +23,9 @@ private:
   // past the end of the sequence
   bool m_no_seq;
   NamePattern *m_names;
+
+  NameExpand(const NameExpand&);
+  NameExpand & operator=(const NameExpand&);
 };
 
 // This class stores a pattern to match and the replacement data.
@@ -48,11 +52,14 @@ public:
 
 private:
   // The pattern we are matching.  Not actually used after startup.
-  char *m_match;
+  const char *m_match;
 
   // The pattern we replace with.  Again not used other than diagnostics
   // after startup.
-  char *m_replace;
+  const char *m_replace;
+
+  // The number of elements in the arrays == characters to replace
+  int m_conv_len;
 
   // The compiled regular expression for matching.
   regex_t m_match_regex;
@@ -73,11 +80,11 @@ private:
   // past the end of the sequence
   bool m_no_seq;
 
-  // The number of elements in the above arrays.
-  int m_conv_len;
-
   // Pointer to the next pattern (or NULL).
   NamePattern *m_next;
+
+  NamePattern(const NamePattern&);
+  NamePattern & operator=(const NamePattern&);
 };
 
 #endif

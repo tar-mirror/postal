@@ -1,0 +1,5 @@
+Brian A. May <bam@snoopy.apana.org.au>  Sponsored the Debianization of this
+and other programs I am writing.
+
+Brian Candler <B.Candler@pobox.com> for solving some of the *BSD portability
+issues and contributing code.

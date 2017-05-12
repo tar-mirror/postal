@@ -2,6 +2,11 @@
 #include "cmd5.h"
 #include <stdio.h>
 
+Cmd5::Cmd5()
+{
+  init();
+}
+
 void Cmd5::init()
 {
 #ifdef USE_SSL

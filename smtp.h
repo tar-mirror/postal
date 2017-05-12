@@ -50,7 +50,6 @@ private:
   const char *m_randomLetters;
   const int m_randomLen;
   const string m_postalMsg;
-  string m_mailname;
 
   Mutex m_dnsLock;
 
@@ -58,6 +57,9 @@ private:
   time_t m_timeLastAction;
   char m_randBuf[MAP_SIZE];
   NAME_MAP m_names;
+
+  smtpData(const smtpData&);
+  smtpData & operator=(const smtpData&);
 };
 
 class smtp : public tcp
@@ -102,6 +104,9 @@ private:
   results *m_res;
   TRISTATE m_netscape;
   string m_helo;
+
+  smtp(const smtp&);
+  smtp & operator=(const smtp&);
 };
 
 #endif

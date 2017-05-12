@@ -3,8 +3,8 @@
 Logit::Logit(const char *filename, bool is_verbose)
  : m_sem(true)
  , m_verbose(is_verbose)
+ , m_fp(fopen(filename, "w"))
 {
-  m_fp = fopen(filename, "w");
   if(!m_fp)
   {
     fprintf(stderr, "Can't open file %s\n", filename);

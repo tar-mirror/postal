@@ -55,6 +55,7 @@ protected:
 private:
 
   int m_threadNum;
+  int m_numThreads;
 
 #ifndef OS2
   pollfd m_readPoll;
@@ -64,8 +65,10 @@ private:
   FILE_TYPE m_parentWrite;
   FILE_TYPE m_childRead;
   FILE_TYPE m_childWrite;
-  int m_numThreads;
   int *m_retVal;
+
+  Thread(const Thread&);
+  Thread & operator=(const Thread&);
 };
 
 #endif

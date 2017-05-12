@@ -1,4 +1,7 @@
 #define TCP_BODY
+
+#include "tcp.h"
+
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -9,37 +12,33 @@
 #include "address.h"
 #include "logit.h"
 
-#ifdef USE_SSL
-#include <openssl/crypto.h>
-#include <openssl/x509.h>
-#include <openssl/pem.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#endif
-
-#include "tcp.h"
-
 tcp::tcp(const char *addr, unsigned short default_port, Logit *log
 #ifdef USE_SSL
        , int ssl
 #endif
        , const char *sourceAddr)
- : m_log(log)
+ : m_md5()
+ , m_destAffinity(0)
+ , m_log(log)
 #ifdef USE_SSL
+ , m_canTLS(false)
  , m_useTLS(ssl)
 #endif
+ , m_fd(-1)
  , m_start(0)
  , m_end(0)
  , m_open(false)
  , m_addr(new address(addr, default_port))
+ , m_sourceAddr(NULL)
 #ifdef USE_SSL
+ , m_sslMeth(NULL)
+ , m_sslCtx(NULL)
+ , m_ssl(NULL)
  , m_isTLS(false)
 #endif
 {
   if(sourceAddr)
     m_sourceAddr = new address(sourceAddr);
-  else
-    m_sourceAddr = NULL;
   m_destAffinity = getThreadNum() % m_addr->addressCount();
 #ifdef USE_SSL
   if(m_useTLS)
@@ -53,16 +52,23 @@ tcp::tcp(const char *addr, unsigned short default_port, Logit *log
 
 tcp::tcp(int threadNum, const tcp *parent)
  : Thread(threadNum, parent)
+ , m_md5()
+ , m_destAffinity(parent->m_destAffinity)
  , m_log(parent->m_log)
 #ifdef USE_SSL
+ , m_canTLS(false)
  , m_useTLS(parent->m_useTLS)
 #endif
+ , m_fd(-1)
  , m_start(0)
  , m_end(0)
  , m_open(false)
  , m_addr(parent->m_addr)
  , m_sourceAddr(parent->m_sourceAddr)
 #ifdef USE_SSL
+ , m_sslMeth(NULL)
+ , m_sslCtx(NULL)
+ , m_ssl(NULL)
  , m_isTLS(false)
 #endif
 {

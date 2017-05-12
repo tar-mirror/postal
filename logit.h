@@ -18,8 +18,11 @@ public:
 
 private:
   Mutex m_sem;
-  FILE *m_fp;
   bool m_verbose;
+  FILE *m_fp;
+
+  Logit(const Logit&);
+  Logit & operator=(const Logit&);
 };
 
 #endif

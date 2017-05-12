@@ -81,8 +81,19 @@ if [[ -n "$linux_pthread" ]]; then
    linux_pthread="#define LINUX_PTHREAD"
 fi
 
+LDFLAGS=-lpthread
+AC_TRY_LINK([#include <pthread.h>
+void * thread_func(void * param) { return NULL; }
+] , [pthread_t thread_info;
+     pthread_attr_t attr;
+     pthread_create(&thread_info, &attr, &thread_func, NULL);]
+  , extra_ldflags="$extra_ldflags -lpthread"
+  , extra_ldflags="$extra_ldflags -pthread")
+
+
 AC_SUBST(socklen_t)
-AC_TRY_COMPILE([#include <sys/socket.h>
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/socket.h>
 ] , [socklen_t * namelen;], , no_socklen_t="true")
 if [[ -n "$no_socklen_t" ]]; then
   socklen_t="#define socklen_t int"

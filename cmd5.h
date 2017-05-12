@@ -15,7 +15,7 @@ extern "C"
 class Cmd5
 {
 public:
-  Cmd5() { init(); }
+  Cmd5();
 
   void init();
 

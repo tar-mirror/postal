@@ -58,6 +58,9 @@ private:
   char m_imapIDtxt[9];
   TRISTATE m_qmail_pop;
   int m_downloadPercent, m_deletePercent;
+
+  client(const client&);
+  client & operator=(const client&);
 };
 
 #endif

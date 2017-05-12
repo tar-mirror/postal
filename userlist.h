@@ -37,6 +37,9 @@ private:
   unsigned int m_index;
   size_t m_maxNameLen;
   bool m_primary;
+
+  UserList(const UserList&);
+  UserList & operator=(const UserList&);
 };
 
 #endif

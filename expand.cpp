@@ -8,18 +8,17 @@
 typedef char * PCHAR;
 
 NamePattern::NamePattern(const char *match, const char *replace)
+ : m_match(strdup(match))
+ , m_replace(strdup(replace))
+ , m_conv_len(strlen(m_replace))
+ , m_convert(new PCHAR[m_conv_len])
+ , m_conv_item_len(new int[m_conv_len])
+ , m_next_value(new int[m_conv_len])
+ , m_no_seq(false)
+ , m_next(NULL)
 {
-  m_next = NULL;
-  m_match = strdup(match);
-  m_replace = strdup(replace);
   regcomp(&m_match_regex, m_match, REG_NOSUB);
-  m_conv_len = 0;
   int i;
-  m_conv_len = strlen(m_replace);
-  m_convert = new PCHAR[m_conv_len];
-  m_conv_item_len = new int[m_conv_len];
-  m_next_value = new int[m_conv_len];
-  m_no_seq = false;
   for(i = 0; i < m_conv_len; i++)
     m_next_value[i] = 0;
   int pos = 0;
@@ -196,23 +195,21 @@ int NamePattern::expand(string &output, const string &input, bool sequential)
 }
 
 NameExpand::NameExpand(const char *filename)
+ : m_no_seq(true)
+ , m_names(NULL)
 {
-  m_no_seq = true;
   if(!filename || strcmp(filename, "-") == 0)
   {
-    m_names = NULL;
     return;
   }
   FILE *fp = fopen(filename, "r");
   if(!fp)
   {
     printf("Can't open config file \"%s\".  Doing no expansion.\n", filename);
-    m_names = NULL;
     return;
   }
   char match[1024];
   NamePattern *np = NULL, *old_np = NULL;
-  m_names = NULL;
   while(fgets(match, sizeof(match), fp))
   {
     match[sizeof(match) - 1] = '\0';

@@ -3,14 +3,14 @@
 #include "postal.h"
 
 results::results()
- : m_mut(true)
+ : m_connections(0)
+ , m_ssl_connections(0)
+ , m_mut(true)
+ , m_msgs(0)
+ , m_bytes(0)
+ , m_errors(0)
+ , m_timeLastAction(time(NULL))
 {
-  m_timeLastAction = time(NULL);
-  m_msgs = 0;
-  m_connections = 0;
-  m_ssl_connections = 0;
-  m_bytes = 0;
-  m_errors = 0;
 }
 
 results::~results()

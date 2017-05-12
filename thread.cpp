@@ -16,31 +16,31 @@
 
 
 Thread::Thread()
-{
-  m_read = -1;
-  m_write = -1;
-  m_threadNum = -1;
-  m_numThreads = 0;
+ : m_read(-1)
+ , m_write(-1)
+ , m_threadNum(-1)
+ , m_numThreads(0)
 
-  m_parentRead = -1;
-  m_parentWrite = -1;
-  m_childRead = -1;
-  m_childWrite = -1;
-  m_retVal = NULL;
+ , m_parentRead(-1)
+ , m_parentWrite(-1)
+ , m_childRead(-1)
+ , m_childWrite(-1)
+ , m_retVal(NULL)
+{
 }
 
 Thread::Thread(int threadNum, const Thread *parent)
-{
-  m_threadNum = threadNum;
-  m_read = parent->m_childRead;
-  m_write = parent->m_childWrite;
-  m_numThreads = parent->m_numThreads;
+ : m_read(parent->m_childRead)
+ , m_write(parent->m_childWrite)
+ , m_threadNum(threadNum)
+ , m_numThreads(parent->m_numThreads)
 
-  m_parentRead = -1;
-  m_parentWrite = -1;
-  m_childRead = -1;
-  m_childWrite = -1;
-  m_retVal = &parent->m_retVal[threadNum];
+ , m_parentRead(-1)
+ , m_parentWrite(-1)
+ , m_childRead(-1)
+ , m_childWrite(-1)
+ , m_retVal(&parent->m_retVal[threadNum])
+{
 }
 
 Thread::~Thread()
