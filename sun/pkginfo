@@ -1,0 +1,6 @@
+PKG=postal
+ARCH=sparc
+VERSION=0.56
+CATEGORY=application
+NAME=Postal mail server benchmark
+MAXINST=1

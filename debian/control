@@ -1,6 +1,6 @@
 Source: postal
-Build-Depends: debhelper
-Section: non-US/utils
+Build-Depends: debhelper libssl095a-dev
+Section: non-US/main
 Priority: optional
 Maintainer: Russell Coker <russell@coker.com.au>
 Standards-Version: 3.0.1

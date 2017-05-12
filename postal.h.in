@@ -8,11 +8,17 @@ typedef enum
   eNONE
 } TRISTATE;
 
-#define VER_STR "0.55"
+#define VER_STR "0.56"
 @ssl@
 @linux_pthread@
 @conversion@
 @socklen_t@
+@bool@
+#if @true_false@
+#define false 0
+#define true 1
+#endif
+
 #define MAX_PROCESSES 200
 #define MAX_MSG_SIZE 40960
 // The amount of time between updates to the shared memory region for random

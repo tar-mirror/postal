@@ -1,0 +1,7 @@
+i pkginfo
+f none /usr/sbin/postal 0755 root root
+f none /usr/sbin/postal-list 0755 root root
+f none /usr/sbin/rabid 0755 root root
+f none /usr/share/man/man8/postal.8 0644 root root
+f none /usr/share/man/man8/postal-list.8 0644 root root
+f none /usr/share/man/man8/rabid.8 0644 root root

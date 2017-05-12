@@ -1,12 +1,15 @@
+EXES=postal postal-list rabid
 
-PROGRAMS=postal postal-list rabid
+all: $(EXES)
 
-
-all: $(PROGRAMS)
-
+PREFIX=@prefix@
 CXX=@CXX@ $(CFLAGS) -O2 -g -Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -Woverloaded-virtual
 
-TESTPROGRAMS=ex-test
+CC=@CC@ $(CFLAGS) -O2 -g -Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -Woverloaded-virtual
+
+INSTALL=@INSTALL@
+
+TESTEXES=ex-test
 BASEOBJS=@conv_objs@ userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
 LFLAGS=-lstdc++ -lpthread @extra_ldflags@
 
@@ -26,16 +29,18 @@ postal-list: postal-list.cpp expand.o
 	$(CXX) postal-list.cpp expand.o -o postal-list $(LFLAGS)
 
 install:
-	mkdir -p $(DESTDIR)/usr/sbin
-	strip $(PROGRAMS)
-	cp $(PROGRAMS) $(DESTDIR)/usr/sbin
+	${INSTALL} -d -p $(DESTDIR)/sbin
+	@INSTALL_PROGRAM@ @stripping@ $(EXES) $(DESTDIR)/sbin
 
 %.o: %.cpp %.h postal.h
 	$(CXX) -c $<
 
+%.o: %.c %.h
+	$(CC) -c $<
+
 clean:
-	rm -f $(PROGRAMS) $(TESTPROGRAMS) $(ALLOBJS) build-stamp install-stamp
-	rm -rf debian/tmp err out core debian/*.debhelper
+	rm -f $(EXES) $(TESTEXES) $(ALLOBJS) build-stamp install-stamp
+	rm -rf debian/tmp core debian/*.debhelper
 	rm -f debian/{substvars,files} config.log
 
 realclean: clean

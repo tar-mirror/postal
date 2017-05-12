@@ -1,3 +1,24 @@
+postal (0.56) unstable; urgency=high
+
+  * Fixed a bug in client.cpp that stopped compiling without SSL.
+
+  * Closes:#71913
+    Added build-depends on libssl095a-dev.
+
+  * Changed the autoconf support for checking for C++ slightly.  It should
+    now work better for some strange setups and work the same for everyone
+    else (I hope).
+
+  * Added --disable-stripping option for ./configure if you don't want binaries
+    stripped.
+
+  * Added --disable-ssl option for ./configure if you don't want to compile
+    with SSL.
+
+  * Added Solaris package manager support.
+
+ -- Russell Coker <russell@coker.com.au>  Sun, 8 Oct 2000 14:21:54 +0200
+
 postal (0.55) unstable; urgency=low
 
   * Closes:#71184

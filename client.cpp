@@ -227,8 +227,10 @@ int client::connectPOP(const string &user, const string &pass)
         return 2;
       buf[sizeof(buf) - 1] = '\0';
       strtok(buf, "\r\n");
+#ifdef USE_SSL
       if(!strcasecmp(buf, "STLS"))
         m_canTLS = true;
+#endif
     } while(strcmp(".", buf));
   }
   string u("user ");
