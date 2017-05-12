@@ -45,7 +45,7 @@ Thread::Thread(int threadNum, const Thread *parent)
 
 Thread::~Thread()
 {
-  if(m_parentRead != -1)
+  if(m_threadNum == -1)
   {
     close(m_parentRead);
     close(m_parentWrite);
@@ -119,7 +119,7 @@ void Thread::go(PVOID param, int num)
       exit(1);
     }
 #else
-    int p = pthread_create(&thread_info[i], &attr, thread_func, PVOID(td));
+    int p = pthread_create(&thread_info[i - 1], &attr, thread_func, PVOID(td));
     if(p)
     {
       fprintf(stderr, "Can't create a thread.\n");

@@ -3,7 +3,11 @@
 #include "mutex.h"
 #include <stdio.h>
 
-Mutex::Mutex(bool fastMutex)
+Mutex::Mutex(bool
+#ifdef LINUX_PTHREAD
+ fastMutex
+#endif
+ )
 {
   int rc;
 #ifdef LINUX_PTHREAD

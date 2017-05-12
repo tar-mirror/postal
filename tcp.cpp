@@ -80,6 +80,9 @@ tcp::~tcp()
 
 int tcp::connect(short port)
 {
+#ifdef USE_SSL
+  m_canTLS = false;
+#endif
   m_start = 0;
   m_end = 0;
 #ifdef USE_SSL

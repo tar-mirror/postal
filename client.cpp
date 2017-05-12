@@ -37,6 +37,11 @@ void clientResults::imap_connection()
   m_pollPrint();
 }
 
+Thread *client::newThread(int threadNum)
+{
+  return new client(threadNum, this);
+}
+
 int client::action(PVOID)
 {
   bool logAll = false;
@@ -46,7 +51,7 @@ int client::action(PVOID)
   {
     string user, pass;
     getUser(user, pass);
-    if(m_useIMAP > rand() % 100)
+    if(CHECK_PERCENT(m_useIMAP))
       m_isIMAP = true;
     else
       m_isIMAP = false;
@@ -62,7 +67,8 @@ int client::action(PVOID)
       {
         for(int i = 1; i <= msgs && !rc; i++)
         {
-          rc = getMsg(i, user, logAll);
+          if(CHECK_PERCENT(m_downloadPercent))
+            rc = getMsg(i, user, logAll);
         }
       }
       // if msgs < 0 means we already had a serious error
@@ -81,7 +87,7 @@ client::client(const char *addr, const char *ourAddr, UserList &ul
 #ifdef USE_SSL
        , int ssl
 #endif
-       , TRISTATE qmail_pop, int imap)
+       , TRISTATE qmail_pop, int imap, int downloadPercent, int deletePercent)
  : tcp(addr, 110, log
 #ifdef USE_SSL
      , ssl
@@ -96,6 +102,8 @@ client::client(const char *addr, const char *ourAddr, UserList &ul
  , m_useIMAP(imap)
  , m_isIMAP(false)
  , m_qmail_pop(qmail_pop)
+ , m_downloadPercent(downloadPercent)
+ , m_deletePercent(deletePercent)
 {
   go(NULL, processes);
 }
@@ -110,12 +118,9 @@ client::client(int threadNum, const client *parent)
  , m_msgsPerConnection(parent->m_msgsPerConnection)
  , m_useIMAP(parent->m_useIMAP)
  , m_qmail_pop(parent->m_qmail_pop)
+ , m_downloadPercent(parent->m_downloadPercent)
+ , m_deletePercent(parent->m_deletePercent)
 {
-}
-
-Thread *client::newThread(int threadNum)
-{
-  return new client(threadNum, this);
 }
 
 client::~client()
@@ -207,9 +212,25 @@ int client::connectPOP(const string &user, const string &pass)
   rc = readCommandResp();
   if(rc)
     return rc;
+  // not supporting CAPA is OK.
   rc = sendCommandString("CAPA\r\n", false);
   if(rc > 1)
-    return rc; // not supporting CAPA is OK.
+    return rc;
+  if(rc == 0) // successful
+  {
+    char buf[1024];
+    // read all lines of the capa field until the ".\r\n"
+    do
+    {
+      rc = readLine(buf, sizeof(buf) - 1);
+      if(rc < 0)
+        return 2;
+      buf[sizeof(buf) - 1] = '\0';
+      strtok(buf, "\r\n");
+      if(!strcasecmp(buf, "STLS"))
+        m_canTLS = true;
+    } while(strcmp(".", buf));
+  }
   string u("user ");
   u += user;
   u += "\r\n";
@@ -235,6 +256,7 @@ int client::connectIMAP(const string &user, const string &pass)
     return rc;
   m_res->connection();
   rc = sendCommandString("C CAPABILITY\r\n");
+// check for sub-string "STARTTLS"
   if(rc)
     return rc;
   string u("C LOGIN ");
@@ -367,8 +389,11 @@ int client::getMsg(int num, const string &user, bool log)
   if(md5Error)
     m_res->error();
 
-  sprintf(command, "dele %d\r\n", num);
-  rc = sendCommandData(command, strlen(command));
+  if(CHECK_PERCENT(m_downloadPercent))
+  {
+    sprintf(command, "dele %d\r\n", num);
+    rc = sendCommandData(command, strlen(command));
+  }
   if(rc)
     return rc;
   m_res->message();

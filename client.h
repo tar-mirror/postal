@@ -16,7 +16,7 @@ public:
 #ifdef USE_SSL
     , int ssl
 #endif
-    , TRISTATE qmail_pop, int imap);
+    , TRISTATE qmail_pop, int imap, int downloadPercent, int deletePercent);
   client(int threadNum, const client *parent);
 
   virtual ~client();
@@ -57,6 +57,7 @@ private:
   int m_imapID;
   char m_imapIDtxt[9];
   TRISTATE m_qmail_pop;
+  int m_downloadPercent, m_deletePercent;
 };
 
 #endif

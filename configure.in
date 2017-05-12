@@ -15,21 +15,37 @@ else
   conversion=["#define NO_CONVERSION"]
 fi
 
-dnl Checks for programs.
+AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_CPP
 AC_PROG_INSTALL
 
-dnl Checks for libraries.
-dnl Replace `main' with a function in -lsocket:
-dnl AC_CHECK_LIB(socket, main)
+AC_SUBST(extra_ldflags)
+extra_ldflags=
+AC_ARG_WITH(extra-libs, [  --with-extra-libs=DIR   adds non standard library paths],
+  use_extra_libs=$withval,
+  use_extra_libs=NONE
+)
+if test -n "$use_extra_libs" && \
+   test "$use_extra_libs" != "NONE"; then
+ 
+   ac_save_ifs=$IFS
+   IFS=':'
+   for dir in $use_extra_libs; do
+     extra_ldflags="$extra_ldflags -L$dir"
+   done
+   IFS=$ac_save_ifs
+fi
+
+
+dnl Checks for library -l socket.
+AC_CHECK_LIB(socket, bind, extra_ldflags="$extra_ldflags -lsocket -lnsl")
 
 dnl Checks for header files.
 AC_SUBST(ssl)
-AC_SUBST(extra_libs)
 AC_SUBST(extra_objs)
 AC_CHECK_HEADER(openssl/crypto.h,
-      ssl="#define USE_SSL" extra_libs="-lssl -lcrypto"
+      ssl="#define USE_SSL" extra_ldflags="$extra_ldflags -lssl -lcrypto"
              , extra_objs="md5.o")
 
 AC_SUBST(linux_pthread)
@@ -40,6 +56,13 @@ AC_TRY_COMPILE([#define _GNU_SOURCE
   , linux_pthread="yes")
 if [[ -n "$linux_pthread" ]]; then
    linux_pthread="#define LINUX_PTHREAD"
+fi
+
+AC_SUBST(socklen_t)
+AC_TRY_COMPILE([#include <sys/socket.h>
+] , [socklen_t * namelen;], , no_socklen_t="true")
+if [[ -n "$no_socklen_t" ]]; then
+  socklen_t="#define socklen_t int"
 fi
 
 dnl Checks for typedefs, structures, and compiler characteristics.

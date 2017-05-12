@@ -65,6 +65,7 @@ protected:
   Logit *m_log;
   struct sockaddr_in m_connectionSourceAddr;
 #ifdef USE_SSL
+  bool m_canTLS;
   int m_useTLS;
 #endif
 

@@ -1,3 +1,27 @@
+postal (0.55) unstable; urgency=low
+
+  * Closes:#71184
+    Now in "non-US" instead of "non-us".
+
+  * Stopped rabid breaking on POP servers that support "CAPA" and added check
+    for STLS in CAPA output.
+
+  * Added better autoconf support for Solaris, now checks for link flags and
+    uses int for the size of sockaddr_in instead of socklen_t on Linux or
+    size_t (which the stupid Solaris documentation recommends).
+
+  * Made rabid support not downloading all messages and not deleting all
+    messages it downloads.
+
+  * Added the following option to ./configure:
+    --with-extra-libs=DIR   adds non standard library paths
+
+  * Added Build-Depends (NOT FINISHED).
+
+  * Fixed a warning about an unused variable for Mutex class on non-Linux.
+
+ -- Russell Coker <russell@coker.com.au>  Sat, 9 Sep 2000 10:00:52 +0100
+
 postal (0.54) unstable; urgency=low
 
   * Fixed the locking so that Rabid won't access the same account from two

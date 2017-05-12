@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 #include "userlist.h"
 #include "logit.h"
 #include "results.h"
@@ -77,6 +78,11 @@ string smtpData::date() const
   return str;
 }
 
+Thread *smtp::newThread(int threadNum)
+{
+  return new smtp(threadNum, this);
+}
+
 int smtp::action(PVOID)
 {
   while(1)
@@ -87,7 +93,7 @@ int smtp::action(PVOID)
     if(rc == 0)
     {
 #ifdef USE_SSL
-      if(m_canTLS && (m_useTLS > rand() % 100) )
+      if(m_canTLS && CHECK_PERCENT(m_useTLS) )
       {
         rc = sendCommandString("STARTTLS\r\n");
         if(!rc)
@@ -133,7 +139,7 @@ smtp::smtp(const char *addr, const char *ourAddr
          , UserList &ul, int msgSize, int numMsgsPerConnection
          , int processes, Logit *log, TRISTATE netscape
 #ifdef USE_SSL
-         , bool ssl
+         , int ssl
 #endif
           )
  : tcp(addr, 25, log
@@ -162,11 +168,6 @@ smtp::smtp(int threadNum, const smtp *parent)
 {
 }
 
-Thread *smtp::newThread(int threadNum)
-{
-  return new smtp(threadNum, this);
-}
-
 smtp::~smtp()
 {
   if(getThreadNum() < 1)
@@ -190,9 +191,6 @@ void smtp::error()
 
 int smtp::connect()
 {
-#ifdef USE_SSL
-  m_canTLS = false;
-#endif
   int rc = tcp::connect();
   if(rc)
     return rc;

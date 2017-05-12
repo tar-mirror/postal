@@ -14,7 +14,7 @@ void usage()
   printf("Usage: rabid [-r max-connections-per-minute] [-p processes] [-l local-address]\n"
          "             [-c messages-per-connection] [-a] [-i imap-percentage]\n"
 #ifdef USE_SSL
-         "             [-s ssl-percentage]\n"
+         "             [-s ssl-percentage] [-d download-percentage[:delete-percentage]]\n"
 #endif
          "             pop-server user-list-filename conversion-filename\n"
          "\n"
@@ -34,10 +34,11 @@ int main(int argc, char **argv)
   int ssl = 0;
 #endif
   int imap = 0;
+  int downloadPercent = 100, deletePercent = 100;
   TRISTATE qmail_pop = eNONE;
 
   int c;
-  while(-1 != (c = getopt(argc, argv, "ab:c:i:l:p:r:s:")) )
+  while(-1 != (c = getopt(argc, argv, "ab:d:c:i:l:p:r:s:")) )
   {
     switch(char(c))
     {
@@ -54,6 +55,10 @@ int main(int argc, char **argv)
       break;
       case 'c':
         msgsPerConnection = atoi(optarg);
+      break;
+      case 'd':
+        if(sscanf(optarg, "%d:%d", &downloadPercent, &deletePercent) < 2)
+          deletePercent = 100;
       break;
       case 'i':
         imap = atoi(optarg);
@@ -83,6 +88,10 @@ int main(int argc, char **argv)
     usage();
 #endif
   if(imap < 0 || imap > 100)
+    usage();
+  if(downloadPercent < 0 || downloadPercent > 100)
+    usage();
+  if(deletePercent < 0 || deletePercent > 100)
     usage();
 #ifndef NO_CONVERSION
   if(optind + 3 != argc)
@@ -116,7 +125,7 @@ int main(int argc, char **argv)
 #ifdef USE_SSL
               , ssl
 #endif
-              , qmail_pop, imap);
+              , qmail_pop, imap, downloadPercent, deletePercent);
 
   return popper.doAllWork(connectionsPerMinute);
 }

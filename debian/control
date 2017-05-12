@@ -1,5 +1,6 @@
 Source: postal
-Section: non-us/utils
+Build-Depends: debhelper
+Section: non-US/utils
 Priority: optional
 Maintainer: Russell Coker <russell@coker.com.au>
 Standards-Version: 3.0.1

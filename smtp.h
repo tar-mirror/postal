@@ -67,7 +67,7 @@ public:
      , UserList &ul, int msgSize, int numMsgsPerConnection, int processes
      , Logit *log, TRISTATE netscape
 #ifdef USE_SSL
-     , bool ssl
+     , int ssl
 #endif
       );
 
@@ -85,6 +85,7 @@ private:
 
   smtp(int threadNum, const smtp *parent);
   virtual Thread *newThread(int threadNum);
+
   int pollRead();
   virtual int WriteWork(PVOID buf, int size, int timeout);
 
@@ -101,9 +102,6 @@ private:
   results *m_res;
   TRISTATE m_netscape;
   string m_helo;
-#ifdef USE_SSL
-  bool m_canTLS;
-#endif
 };
 
 #endif

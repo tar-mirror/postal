@@ -6,7 +6,7 @@ rabid \- program to test POP server throughput.
 .B rabid
 .I [-r max-connections-per-minute] [-p processes] [-l local-address]
 .I [-c messages-per-connection] [-a] [-s ssl-percentage] [-i imap-percentage]
-.I [-b qmail-pop]
+.I [-b qmail-pop] [-d download-percentage[:delete-percentage]]
 .I pop-server user-list-filename conversion-filename
 
 .SH "DESCRIPTION"
@@ -96,6 +96,10 @@ for Qmail POP server which adds an extra blank line at the end of each
 message.
 .B -b qmail-pop
 means to not report this as an error.
+.P
+.B -d download-percentage[:delete-percentage]
+allows you to specify what percentage of the messages are downloaded and what
+percentage of the downloaded messages are deleted.  Default is 100%.
 
 .SH BUGS
 Doesn't actually do SSL or IMAP yet.

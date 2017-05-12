@@ -8,7 +8,7 @@ CXX=@CXX@ $(CFLAGS) -O2 -g -Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrit
 
 TESTPROGRAMS=ex-test
 BASEOBJS=@conv_objs@ userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
-LFLAGS=-lstdc++ -lpthread @extra_libs@
+LFLAGS=-lstdc++ -lpthread @extra_ldflags@
 
 
 ALLOBJS=$(BASEOBJS) smtp.o client.o
