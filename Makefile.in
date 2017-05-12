@@ -4,7 +4,7 @@ PROGRAMS=postal postal-list rabid
 all: $(PROGRAMS)
 
 CFLAGS=@domainname@
-CXX=@CXX@ $(CFLAGS) -O2 -g -Wall -pipe -Wshadow -Wpointer-arith -Wwrite-strings -Wcast-align -Wcast-qual -Woverloaded-virtual
+CXX=@CXX@ $(CFLAGS) -O2 -g -Wall -Wshadow -Wpointer-arith -Wwrite-strings -Wcast-align -Wcast-qual -Woverloaded-virtual
 
 TESTPROGRAMS=ex-test
 BASEOBJS=expand.o userlist.o forkit.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
@@ -39,4 +39,4 @@ clean:
 	rm -f debian/{substvars,files} config.log
 
 realclean: clean
-	rm -f config.*
+	rm -f config.* Makefile postal.h

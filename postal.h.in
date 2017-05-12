@@ -8,7 +8,7 @@ typedef enum
   eNONE
 } TRISTATE;
 
-#define VER_STR "0.52"
+#define VER_STR "0.53"
 @ssl@
 @linux_pthread@
 #define MAX_PROCESSES 200

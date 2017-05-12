@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include <sys/utsname.h>
 #include <stdio.h>
 #include "postal.h"
 #include "logit.h"
@@ -111,20 +110,6 @@ int main(int argc, char **argv)
     printf("Can't block SIGPIPE.\n");
     return 1;
   }
-  struct utsname uts;
-  if(uname(&uts))
-  {
-    printf("Unable to get name of this host.\n");
-    return 1;
-  }
-  string name = uts.nodename;
-#ifdef DOMAINNAME
-  if(strlen(uts.domainname))
-  {
-    name += '.';
-    name += uts.domainname;
-  }
-#endif
   printf("time,messages,data(K),errors,connections"
 #ifdef USE_SSL
     ",SSL connections"
@@ -132,7 +117,7 @@ int main(int argc, char **argv)
     "\n");
 
   Logit log("postal.log", allLog);
-  smtp mailer(argv[optind], ourAddr, name, ul, maxMsgSize
+  smtp mailer(argv[optind], ourAddr, ul, maxMsgSize
             , msgsPerConnection, processes, &log, netscape
 #ifdef USE_SSL
             , ssl);

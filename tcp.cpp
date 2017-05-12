@@ -2,7 +2,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <netinet/in.h>
 #include <fcntl.h>
 #include <errno.h>
 #include "postal.h"
@@ -132,6 +131,10 @@ int tcp::connect(short port)
     close(m_fd);
     return 1;
   }
+  socklen_t namelen = sizeof(m_connectionSourceAddr);
+  rc = getsockname(m_fd, (struct sockaddr *)&m_connectionSourceAddr, &namelen);
+  if(rc)
+    fprintf(stderr, "Can't getsockname!\n");
 /*  if(fcntl(m_fd, F_SETFL, O_NONBLOCK))
   {
     fprintf(stderr, "Can't set non-blocking IO.\n");

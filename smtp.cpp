@@ -1,20 +1,43 @@
 #include "smtp.h"
 #include <unistd.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 #include "userlist.h"
 #include "logit.h"
 #include "results.h"
 
-smtpData::smtpData(const string &name, const char *app_name)
- : m_helo(string("EHLO ") + name + "\r\n")
- , m_quit("QUIT\r\n")
+smtpData::smtpData(const char *app_name)
+ : m_quit("QUIT\r\n")
  , m_randomLetters("abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890 `~!@#$%^&*()-_=+[]{};:'\"|/?<>,")
  , m_randomLen(strlen(m_randomLetters))
  , m_postalMsg("X-Postal: " VER_STR " - the mad postman.\r\n"
                "X-Postal: http://www.coker.com.au/postal/\r\n"
                "X-Postal: This is not a real email.\r\n")
+ , m_dnsLock(true)
  , m_timeLastAction(time(NULL))
 {
   setRand(0);
+}
+
+const string * const smtpData::getMailName(struct sockaddr_in &in)
+{
+  Lock l(m_dnsLock);
+  unsigned long ip = in.sin_addr.s_addr;
+  string *name = m_names[ip];
+  if(name != NULL)
+    return name;
+  struct hostent *h;
+  h = gethostbyaddr((char *)&(in.sin_addr), sizeof(in.sin_addr), AF_INET);
+  if(!h)
+  {
+    name = new string(inet_ntoa(in.sin_addr));
+  }
+  else
+  {
+    name = new string(h->h_name);
+  }
+  m_names[ip] = name;
+  return name;
 }
 
 smtpData::~smtpData()
@@ -70,7 +93,7 @@ int smtp::action(PVOID param)
         if(!rc)
           rc = connectTLS();
         if(!rc)
-          rc = sendCommandString(m_data->helo());
+          rc = sendCommandString(m_helo);
         if(rc > 1)
           return rc;
         m_res->ssl();
@@ -106,7 +129,7 @@ int smtp::action(PVOID param)
   }
 }
 
-smtp::smtp(const char *addr, const char *ourAddr, const string &name
+smtp::smtp(const char *addr, const char *ourAddr
          , UserList &ul, int msgSize, int numMsgsPerConnection
          , int processes, Logit *log, TRISTATE netscape
 #ifdef USE_SSL
@@ -118,10 +141,9 @@ smtp::smtp(const char *addr, const char *ourAddr, const string &name
      , ssl
 #endif
      , ourAddr)
- , m_name(name)
  , m_ul(ul)
  , m_msgSize(msgSize)
- , m_data(new smtpData(name, "Postal"))
+ , m_data(new smtpData("Postal"))
  , m_msgsPerConnection(numMsgsPerConnection)
  , m_res(new results)
  , m_netscape(netscape)
@@ -131,7 +153,6 @@ smtp::smtp(const char *addr, const char *ourAddr, const string &name
 
 smtp::smtp(int threadNum, const smtp *parent)
  : tcp(threadNum, parent)
- , m_name(parent->m_name)
  , m_ul(parent->m_ul)
  , m_msgSize(parent->m_msgSize)
  , m_data(parent->m_data)
@@ -179,7 +200,9 @@ int smtp::connect()
   rc = readCommandResp();
   if(rc)
     return rc;
-  rc = sendCommandString(m_data->helo());
+  const string *mailName = m_data->getMailName(m_connectionSourceAddr);
+  m_helo = string("ehlo ") + *mailName + "\r\n";
+  rc = sendCommandString(m_helo);
   if(rc)
     return rc;
   return 0;

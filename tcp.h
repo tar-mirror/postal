@@ -9,6 +9,7 @@
 #include <string>
 #include "cmd5.h"
 #include "forkit.h"
+#include <netinet/in.h>
 
 class Logit;
 class address;
@@ -62,6 +63,7 @@ protected:
 
   int m_destAffinity;
   Logit *m_log;
+  struct sockaddr_in m_connectionSourceAddr;
 #ifdef USE_SSL
   int m_useTLS;
 #endif

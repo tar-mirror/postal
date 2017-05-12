@@ -1,3 +1,11 @@
+postal (0.53) unstable; urgency=low
+
+  * Removed all utsname() code, so the hostname/domainname kernel values are
+    not used any more at all!  Now do gethostbyaddr() to get the name of the
+    local end of the connection for EHLO.
+
+ -- Russell Coker <russell@coker.com.au>  Sun, 23 Jul 2000 17:42:48 +0100
+
 postal (0.52) unstable; urgency=low
 
   * Changed section to non-us/utils.
