@@ -1,11 +1,11 @@
 #ifndef THREAD_H
 #define THREAD_H
 
-#ifndef OS2
+#include "port.h"
+
+#ifndef NON_UNIX
 #include <sys/poll.h>
 #endif
-
-#include "port.h"
 
 class Thread;
 
@@ -20,7 +20,7 @@ typedef struct
 
 class Thread
 {
-public:
+protected:
   // Virtual function that is called when the thread is started.
   // The parameter is the pointer that is passed first to the go() function
   virtual int action(PVOID param) = 0;
@@ -55,9 +55,8 @@ protected:
 private:
 
   int m_threadNum;
-  int m_numThreads;
 
-#ifndef OS2
+#ifndef NON_UNIX
   pollfd m_readPoll;
   pollfd m_writePoll;
 #endif
@@ -65,10 +64,22 @@ private:
   FILE_TYPE m_parentWrite;
   FILE_TYPE m_childRead;
   FILE_TYPE m_childWrite;
+  int m_numThreads;
   int *m_retVal;
 
-  Thread(const Thread&);
-  Thread & operator=(const Thread&);
+  Thread(const Thread &f);
+  Thread & operator =(const Thread &f);
+
+
+#ifdef NON_UNIX
+#ifdef OS2
+friend VOID APIENTRY thread_func(ULONG param);
+#else
+friend void( __cdecl thread_func )( void *param);
+#endif
+#else
+friend PVOID thread_func(PVOID param);
+#endif
 };
 
 #endif

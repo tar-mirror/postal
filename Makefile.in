@@ -1,16 +1,16 @@
-EXES=postal postal-list rabid
+EXE=postal postal-list rabid
 
-all: $(EXES)
+all: $(EXE)
 
 PREFIX=@prefix@
 WFLAGS=-Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -Woverloaded-virtual -pedantic -ffor-scope
 
-CXX=@CXX@ $(CFLAGS) -O2 -g ${WFLAGS}
-CC=@CC@ $(CFLAGS) -O2 -g ${WFLAGS}
+CXX=@CXX@ $(CFLAGS) -O2 -g $(WFLAGS)
+CC=@CC@ $(CFLAGS) -O2 -g $(WFLAGS)
 
 INSTALL=@INSTALL@
 
-TESTEXES=ex-test
+TESTEXE=ex-test
 BASEOBJS=@conv_objs@ userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
 LFLAGS=-lstdc++ @extra_ldflags@
 
@@ -30,8 +30,8 @@ postal-list: postal-list.cpp expand.o
 	$(CXX) postal-list.cpp expand.o -o postal-list $(LFLAGS)
 
 install:
-	${INSTALL} -d -p $(DESTDIR)/sbin
-	@INSTALL_PROGRAM@ @stripping@ $(EXES) $(DESTDIR)/sbin
+	$(INSTALL) -d -p $(DESTDIR)/sbin
+	@INSTALL_PROGRAM@ @stripping@ $(EXE) $(DESTDIR)/sbin
 
 %.o: %.cpp %.h postal.h
 	$(CXX) -c $<
@@ -40,9 +40,9 @@ install:
 	$(CC) -c $<
 
 clean:
-	rm -f $(EXES) $(TESTEXES) $(ALLOBJS) build-stamp install-stamp
+	rm -f $(EXE) $(TESTEXE) $(ALLOBJS) md5.o build-stamp install-stamp
 	rm -rf debian/tmp core debian/*.debhelper
 	rm -f debian/{substvars,files} config.log
 
 realclean: clean
-	rm -f config.* Makefile postal.h
+	rm -f config.* Makefile postal.spec sun/pkginfo

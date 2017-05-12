@@ -1,3 +1,26 @@
+postal (0.58) unstable; urgency=high
+
+  * Closes:#79647
+    Now removes the md5.o file on "make clean" regardless if it'll be generated
+    by a compile.
+
+  * Puts the version in Autoconf.
+
+  * Now with new thread class with Win32 and OS/2 portability.
+
+  * Added RPM .spec file.
+
+  * Closes:#63973
+    Was closed before but BTS didn't recognise it.
+
+  * Closes:#71184
+    Was closed before but BTS didn't recognise it.
+
+  * Closes:#71913
+    Was closed before but BTS didn't recognise it.
+
+ -- Russell Coker <russell@coker.com.au>  Mon, 19 Feb 2001 23:47:23 +0100
+
 postal (0.57) unstable; urgency=high
 
   * Added extra compiler checks and fixed many trivial bugs.

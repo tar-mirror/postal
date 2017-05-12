@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 
-
-
-#if 0
+@semun@
+@bool@
+#if @true_false@
 #define false 0
 #define true 1
 #endif

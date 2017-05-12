@@ -8,13 +8,13 @@ typedef enum
   eNONE
 } TRISTATE;
 
-#define VER_STR "@version@"
-@ssl@
-@linux_pthread@
-@conversion@
-@socklen_t@
-@bool@
-#if @true_false@
+#define VER_STR "0.58"
+#define USE_SSL
+#define LINUX_PTHREAD
+
+
+
+#if 0
 #define false 0
 #define true 1
 #endif
