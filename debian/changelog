@@ -1,8 +1,25 @@
+postal (0.54) unstable; urgency=low
+
+  * Fixed the locking so that Rabid won't access the same account from two
+    threads at the same time.  This fixes a variety of error conditions that
+    a POP server can return.  Also the old buggy code may have caused Postal
+    to crash in some situations.
+
+  * Renamed class Fork to Thread.
+
+  * Added extra gcc warning options and fixed some suspect code.
+
+  * Added ./configure option --disable-conversion, it removes the user-name
+    expansion facility and allows compilation on Slackware and BSD machines
+    with broken regex headers.
+
+ -- Russell Coker <russell@coker.com.au>  Tue, 1 Aug 2000 10:46:00 +0100
+
 postal (0.53) unstable; urgency=low
 
   * Removed all utsname() code, so the hostname/domainname kernel values are
     not used any more at all!  Now do gethostbyaddr() to get the name of the
-    local end of the connection for EHLO.
+    local end of the connection for EHLO.  Closes: #63973
 
  -- Russell Coker <russell@coker.com.au>  Sun, 23 Jul 2000 17:42:48 +0100
 

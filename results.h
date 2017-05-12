@@ -16,7 +16,7 @@ public:
   void connection();
   void ssl();
 
-  void pollPrint(bool mustPrint = false);
+  void pollPrint();
 
 protected:
   virtual void childPrint();

@@ -37,7 +37,7 @@ void clientResults::imap_connection()
   m_pollPrint();
 }
 
-int client::action(PVOID param)
+int client::action(PVOID)
 {
   bool logAll = false;
   if(m_log && m_log->verbose())
@@ -89,7 +89,7 @@ client::client(const char *addr, const char *ourAddr, UserList &ul
      , ourAddr)
  , m_ul(ul)
  , m_maxNameLen(ul.maxNameLen() + 1)
- , m_namesBuf(new char[m_maxNameLen * processes])
+ , m_namesBuf(new char[m_maxNameLen * (processes + 1)])
  , m_sem(new Mutex(true) )
  , m_res(new clientResults)
  , m_msgsPerConnection(msgsPerConnection)
@@ -113,7 +113,7 @@ client::client(int threadNum, const client *parent)
 {
 }
 
-Fork *client::newThread(int threadNum)
+Thread *client::newThread(int threadNum)
 {
   return new client(threadNum, this);
 }
@@ -127,7 +127,7 @@ client::~client()
   }
 }
 
-void client::sentData(int bytes)
+void client::sentData(int)
 {
 }
 
@@ -254,16 +254,16 @@ int client::disconnect()
   else
     rc = sendCommandData("quit\r\n", 6);
 
+  if(!rc)
+    rc = tcp::disconnect();
 // Comment the next line to make it that if the number of threads equals the
 // number of accounts then each thread always does the same account.
 // This makes things easy to debug and has no real down-side, I don't do this
 // by default because it lightens the load a little on mail servers.
-  memset(&m_namesBuf[m_threadNum * m_maxNameLen], 0, m_maxNameLen);
+  memset(&m_namesBuf[getThreadNum() * m_maxNameLen], 0, m_maxNameLen);
 // NB The sendCommandData will wait for a +OK or -ERR response, in either
 // case the server is (or should be ;) ready for another connection.
-  if(rc)
-    return rc;
-  return tcp::disconnect();
+  return rc;
 }
 
 int client::getMsg(int num, const string &user, bool log)
@@ -398,22 +398,22 @@ int client::list()
 bool client::checkUser(const char *user)
 {
   int num = getNumThreads();
-  Lock l(*m_sem);
   if(num == 1)
     return true;
-  for(int i = 0; i < num; i++)
+  for(int i = 1; i <= num; i++)
   {
-    if(i != m_threadNum && !strcmp(user, &m_namesBuf[i * m_maxNameLen]))
+    if(i != getThreadNum() && !strcmp(user, &m_namesBuf[i * m_maxNameLen]))
     {
       return false;
     }
   }
-  strcpy(&m_namesBuf[m_threadNum * m_maxNameLen], user);
+  strcpy(&m_namesBuf[getThreadNum() * m_maxNameLen], user);
   return true;
 }
 
 void client::getUser(string &user, string &pass)
 {
+  Lock l(*m_sem);
   user = m_ul.randomUser();
   while(!checkUser(user.c_str()) )
   {

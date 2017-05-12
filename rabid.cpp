@@ -84,10 +84,18 @@ int main(int argc, char **argv)
 #endif
   if(imap < 0 || imap > 100)
     usage();
+#ifndef NO_CONVERSION
   if(optind + 3 != argc)
+#else
+  if(optind + 2 != argc)
+#endif
     usage();
 
-  UserList ul(argv[optind + 1], argv[optind + 2], true);
+  UserList ul(argv[optind + 1]
+#ifndef NO_CONVERSION
+            , argv[optind + 2]
+#endif
+            , true);
 
   struct sigaction sa;
   sa.sa_handler = SIG_IGN;

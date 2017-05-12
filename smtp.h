@@ -26,7 +26,7 @@ typedef hash_map<unsigned long, string *, hash<unsigned long>, eqlng> NAME_MAP;
 class smtpData
 {
 public:
-  smtpData(const char *app_name);
+  smtpData();
   ~smtpData();
 
   const string &quit() const { return m_quit; }
@@ -45,7 +45,7 @@ public:
   const string * const getMailName(struct sockaddr_in &in);
 
 private:
-  // Some const strings that we want initialised once before we get fork()ed.
+  // Some const strings that we only want one copy of
   const string m_quit;
   const char *m_randomLetters;
   const int m_randomLen;
@@ -81,17 +81,18 @@ public:
   int msgsPerConnection() const { return m_msgsPerConnection; }
 
 private:
-  virtual int action(PVOID param);
+  virtual int action(PVOID);
 
   smtp(int threadNum, const smtp *parent);
-  virtual Fork *newThread(int threadNum);
+  virtual Thread *newThread(int threadNum);
   int pollRead();
   virtual int WriteWork(PVOID buf, int size, int timeout);
 
-  virtual int readCommandResp(bool important = true);
+  virtual int readCommandResp(bool) { return readCommandResp(); }
+  int readCommandResp();
   void error();
   virtual void sentData(int bytes);
-  virtual void receivedData(int bytes);
+  virtual void receivedData(int);
 
   UserList &m_ul;
   const int m_msgSize;

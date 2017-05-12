@@ -8,7 +8,7 @@
 #include <sys/poll.h>
 #include <string>
 #include "cmd5.h"
-#include "forkit.h"
+#include "thread.h"
 #include <netinet/in.h>
 
 class Logit;
@@ -21,7 +21,7 @@ struct SSL;
 struct X509;
 #endif
 
-class tcp : public Fork
+class tcp : public Thread
 {
 public:
   tcp(const char *addr, unsigned short default_port, Logit *log

@@ -6,7 +6,7 @@
 #include "logit.h"
 #include "results.h"
 
-smtpData::smtpData(const char *app_name)
+smtpData::smtpData()
  : m_quit("QUIT\r\n")
  , m_randomLetters("abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890 `~!@#$%^&*()-_=+[]{};:'\"|/?<>,")
  , m_randomLen(strlen(m_randomLetters))
@@ -77,7 +77,7 @@ string smtpData::date() const
   return str;
 }
 
-int smtp::action(PVOID param)
+int smtp::action(PVOID)
 {
   while(1)
   {
@@ -143,7 +143,7 @@ smtp::smtp(const char *addr, const char *ourAddr
      , ourAddr)
  , m_ul(ul)
  , m_msgSize(msgSize)
- , m_data(new smtpData("Postal"))
+ , m_data(new smtpData())
  , m_msgsPerConnection(numMsgsPerConnection)
  , m_res(new results)
  , m_netscape(netscape)
@@ -162,7 +162,7 @@ smtp::smtp(int threadNum, const smtp *parent)
 {
 }
 
-Fork *smtp::newThread(int threadNum)
+Thread *smtp::newThread(int threadNum)
 {
   return new smtp(threadNum, this);
 }
@@ -178,7 +178,7 @@ void smtp::sentData(int bytes)
   m_res->dataBytes(bytes);
 }
 
-void smtp::receivedData(int bytes)
+void smtp::receivedData(int)
 {
 }
 
@@ -291,7 +291,7 @@ int smtp::sendMsg()
   return 0;
 }
 
-int smtp::readCommandResp(bool important)
+int smtp::readCommandResp()
 {
   char recvBuf[1024];
   do

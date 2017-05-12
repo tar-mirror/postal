@@ -1,5 +1,5 @@
-#ifndef FORKIT_H
-#define FORKIT_H
+#ifndef THREAD_H
+#define THREAD_H
 
 #ifndef OS2
 #include <sys/poll.h>
@@ -7,30 +7,30 @@
 
 #include "port.h"
 
-class Fork;
+class Thread;
 
 typedef void *PVOID;
 
 typedef struct
 {
-  Fork *f;
+  Thread *f;
   PVOID param;
   int threadNum;
 } THREAD_DATA;
 
-class Fork
+class Thread
 {
 public:
   virtual int action(PVOID param) = 0;
 
-  Fork();
-  Fork(int threadNum, const Fork *parent);
-  virtual ~Fork();
+  Thread();
+  Thread(int threadNum, const Thread *parent);
+  virtual ~Thread();
   void go(PVOID param, int num); // creates all threads
 
   int getNumThreads() const { return m_numThreads; }
 
-  virtual Fork *newThread(int threadNum) = 0;
+  virtual Thread *newThread(int threadNum) = 0;
 
   void setRetVal(int rc);
 

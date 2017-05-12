@@ -53,7 +53,7 @@ void results::ssl()
   m_pollPrint();
 }
 
-void results::pollPrint(bool mustPrint)
+void results::pollPrint()
 {
   Lock l(m_mut);
   m_pollPrint();

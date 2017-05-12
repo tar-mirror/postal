@@ -1,13 +1,13 @@
 
 PROGRAMS=postal postal-list rabid
 
+
 all: $(PROGRAMS)
 
-CFLAGS=@domainname@
-CXX=@CXX@ $(CFLAGS) -O2 -g -Wall -Wshadow -Wpointer-arith -Wwrite-strings -Wcast-align -Wcast-qual -Woverloaded-virtual
+CXX=@CXX@ $(CFLAGS) -O2 -g -Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -Woverloaded-virtual
 
 TESTPROGRAMS=ex-test
-BASEOBJS=expand.o userlist.o forkit.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
+BASEOBJS=@conv_objs@ userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
 LFLAGS=-lstdc++ -lpthread @extra_libs@
 
 

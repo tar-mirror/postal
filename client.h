@@ -32,8 +32,8 @@ public:
 private:
   int connectPOP(const string &user, const string &pass);
   int connectIMAP(const string &user, const string &pass);
-  virtual int action(PVOID param);
-  virtual Fork *newThread(int threadNum);
+  virtual int action(PVOID);
+  virtual Thread *newThread(int threadNum);
 
   virtual int pollRead();
   virtual int WriteWork(PVOID buf, int size, int timeout);
@@ -42,7 +42,7 @@ private:
 
   bool checkUser(const char *user);
   void error();
-  virtual void sentData(int bytes);
+  virtual void sentData(int);
   virtual void receivedData(int bytes);
   virtual int sendCommandString(const string &s, bool important = true);
 
@@ -51,7 +51,6 @@ private:
   char *m_namesBuf;
   Mutex *m_sem;
   clientResults *m_res;
-  int m_threadNum;
   int m_msgsPerConnection;
   int m_useIMAP;
   bool m_isIMAP;

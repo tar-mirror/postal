@@ -3,6 +3,18 @@ AC_INIT(postal.cpp)
 
 dnl AM_CONFIG_HEADER(config.h)
 
+AC_ARG_ENABLE(conversion,
+      [  --enable-conversion          enables user-name conversion - default],
+      CONVERSION=$enableval, CONVERSION=yes)
+
+AC_SUBST(conv_objs)
+AC_SUBST(conversion)
+if [[ "$CONVERSION" = "yes" ]]; then
+  conv_objs=expand.o
+else
+  conversion=["#define NO_CONVERSION"]
+fi
+
 dnl Checks for programs.
 AC_PROG_CXX
 AC_PROG_CPP
@@ -19,11 +31,6 @@ AC_SUBST(extra_objs)
 AC_CHECK_HEADER(openssl/crypto.h,
       ssl="#define USE_SSL" extra_libs="-lssl -lcrypto"
              , extra_objs="md5.o")
-
-AC_SUBST(domainname)
-AC_TRY_COMPILE(#include <sys/utsname.h>
-     , "struct utsname uts; uts.domainname[0]='a';"
-     , domainname="-DDOMAINNAME")
 
 AC_SUBST(linux_pthread)
 AC_TRY_COMPILE([#define _GNU_SOURCE

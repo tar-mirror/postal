@@ -52,7 +52,7 @@ tcp::tcp(const char *addr, unsigned short default_port, Logit *log
 }
 
 tcp::tcp(int threadNum, const tcp *parent)
- : Fork(threadNum, parent)
+ : Thread(threadNum, parent)
  , m_log(parent->m_log)
 #ifdef USE_SSL
  , m_useTLS(parent->m_useTLS)

@@ -10,12 +10,12 @@
 #include <pthread.h>
 #endif
 
-#include "forkit.h"
+#include "thread.h"
 
 #include <stdio.h>
 
 
-Fork::Fork()
+Thread::Thread()
 {
   m_read = -1;
   m_write = -1;
@@ -29,7 +29,7 @@ Fork::Fork()
   m_retVal = NULL;
 }
 
-Fork::Fork(int threadNum, const Fork *parent)
+Thread::Thread(int threadNum, const Thread *parent)
 {
   m_threadNum = threadNum;
   m_read = parent->m_childRead;
@@ -43,7 +43,7 @@ Fork::Fork(int threadNum, const Fork *parent)
   m_retVal = &parent->m_retVal[threadNum];
 }
 
-Fork::~Fork()
+Thread::~Thread()
 {
   if(m_parentRead != -1)
   {
@@ -55,8 +55,8 @@ Fork::~Fork()
   }
 }
 
-// for the benefit of this function and the new Fork class it may create
-// the Fork class must do nothing of note in it's constructor or it's
+// for the benefit of this function and the new Thread class it may create
+// the Thread class must do nothing of note in it's constructor or it's
 // go() member function.
 #ifdef OS2
 VOID APIENTRY thread_func(ULONG param)
@@ -65,14 +65,14 @@ PVOID thread_func(PVOID param)
 #endif
 {
   THREAD_DATA *td = (THREAD_DATA *)param;
-  Fork *thread = td->f->newThread(td->threadNum);
+  Thread *thread = td->f->newThread(td->threadNum);
   thread->setRetVal(thread->action(td->param));
   delete thread;
   delete td;
   return NULL;
 }
 
-void Fork::go(PVOID param, int num)
+void Thread::go(PVOID param, int num)
 {
   m_numThreads += num;
   FILE_TYPE control[2];
@@ -135,12 +135,12 @@ void Fork::go(PVOID param, int num)
 #endif
 }
 
-void Fork::setRetVal(int rc)
+void Thread::setRetVal(int rc)
 {
   *m_retVal = rc;
 }
 
-int Fork::Read(PVOID buf, int size, int timeout)
+int Thread::Read(PVOID buf, int size, int timeout)
 {
 #ifndef OS2
   if(timeout)
@@ -169,7 +169,7 @@ int Fork::Read(PVOID buf, int size, int timeout)
   return size;
 }
 
-int Fork::Write(PVOID buf, int size, int timeout)
+int Thread::Write(PVOID buf, int size, int timeout)
 {
 #ifndef OS2
   if(timeout)

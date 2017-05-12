@@ -57,10 +57,8 @@ binary-arch: build install
 #	dh_installinit
 	dh_installcron
 	dh_installmanpages
-	dh_installinfo
 #	dh_undocumented
 	dh_installchangelogs 
-	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
