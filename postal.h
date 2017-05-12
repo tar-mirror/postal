@@ -8,7 +8,7 @@ typedef enum
   eNONE
 } TRISTATE;
 
-#define VER_STR "0.68"
+#define VER_STR "0.70"
 
 #define USE_GNUTLS
 #ifdef USE_GNUTLS

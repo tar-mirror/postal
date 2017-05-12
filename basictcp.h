@@ -45,11 +45,11 @@ public:
 
   int do_stuff();
 
+  int disconnect();
 #ifdef USE_SSL
   // after calling Connect() and getting high-level protocol ready call
   // ConnectTLS() to start TLS.
   int ConnectTLS();
-  int disconnect();
   int isTLS() { return m_isTLS; }
 #endif
 

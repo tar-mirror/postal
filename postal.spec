@@ -1,6 +1,6 @@
 Summary: A program for benchmarking mail servers
 Name: postal
-Version: 0.68
+Version: 0.70
 Release: 1
 License: GPL
 Group: Utilities/Benchmarking

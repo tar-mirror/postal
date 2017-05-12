@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <stdio.h>
+#include <strings.h>
 #include "postal.h"
 #include "logit.h"
 #ifdef USE_GNUTLS

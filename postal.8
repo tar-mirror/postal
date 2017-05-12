@@ -1,4 +1,4 @@
-.TH "postal" "8" "0.60" "russell@coker.com.au" "Postal"
+.TH "postal" "8" "0.70" "russell@coker.com.au" "Postal"
 .SH "NAME"
 postal \- program to test SMTP mail server throughput.
 
@@ -38,7 +38,7 @@ is the name of a file which contains a list of user's email addresses.  This
 can be just user\-names or fully qualified email addresses.  Whatever you
 specify will be sent exactly in the SMTP protocol so make sure you do whatever
 is appropriate.  If unsure then use fully qualified addresses (IE
-user@domain).
+user@example.com).
 .P
 The
 .B sender\-file
@@ -129,6 +129,10 @@ The
 switch is the same but creates a separate file for each connection as well
 with an attitional ':' appended followed by the connection number.
 
+.SH "NOTES"
+
+When testing mail servers please use domains defined in http://www.rfc-editor.org/rfc/rfc2606.txt - example.com, example.net, and example.org are all good options.  Please don't use anything related to a valid name, that will cause pain for you and others on the net.
+
 .SH "RETURN CODES"
 .TP
 .B 0
@@ -143,6 +147,11 @@ System Error, lack of memory or some other resource
 .SH "AUTHOR"
 This program, it's manual page, and the Debian package were written by
 Russell Coker <russell@coker.com.au>.
+
+.SH "AVAILABILITY"
+The source is available from http://doc.coker.com.au/projects/postal/ .
+.P
+See http://etbe.coker.com.au/category/benchmark for further information.
 
 .SH "SEE ALSO"
 .BR bhm (8), postal\-list (8), rabid (8)

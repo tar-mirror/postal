@@ -261,7 +261,11 @@ int readCommand(base_tcp &t, char *buf, int bufSize, bool stripCR, int timeout)
 
 void do_work(thread_data *td)
 {
-  base_tcp t(td->fd, log, td->debug, &res, td->ssl);
+  base_tcp t(td->fd, log, td->debug, &res
+#ifdef USE_SSL
+    , td->ssl
+#endif
+  );
   struct sockaddr_in name;
   socklen_t namelen = sizeof(name);
   char buf[1024];
@@ -476,7 +480,9 @@ int main(int argc, char **argv)
       td->fd = fd;
       memcpy(&td->addr, &addr, sizeof(addr));
       td->debug = debug ? new Logit(*debug, i) : NULL;
+#ifdef USE_SSL
       td->ssl = use_ssl;
+#endif
       int p = pthread_create(&thread_info[i], &attr, smtp_worker, PVOID(td));
       pthread_attr_destroy(&attr);
       if(p)

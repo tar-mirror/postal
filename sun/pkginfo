@@ -1,6 +1,6 @@
 PKG=postal
 ARCH=sparc
-VERSION=0.68
+VERSION=0.70
 CATEGORY=application
 NAME=Postal
 DESC=Mail server benchmark suite

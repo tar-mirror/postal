@@ -1,3 +1,10 @@
+postal (0.70) unstable; urgency=low
+
+  * Made it build correctly when no SSL support is configured.  Also tidy
+    up the documentation.
+
+ -- Russell Coker <russell@coker.com.au>  Mon, 26 May 2008 19:33:48 +1000
+
 postal (0.69) unstable; urgency=low
 
   * Really fix the GCC 4.3 issues.  The main change was to remove the

@@ -1709,7 +1709,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 ac_config_headers="$ac_config_headers conf.h"
 
 
-version="0.68"
+version="0.70"
 
 # Check whether --enable-stripping was given.
 if test "${enable_stripping+set}" = set; then
@@ -4600,7 +4600,7 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 
 
-crypt_ldflags=
+crypt_ldflags="$extra_ldflags"
 if [ "$GNUTLS" = "no" ]; then
   gnutls=""
 else
