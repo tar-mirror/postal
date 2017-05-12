@@ -81,6 +81,7 @@ int client::action(PVOID)
     if(rc)
       sleep(10);
   }
+  return 0;
 }
 
 client::client(int *exitCount, const char *addr, const char *ourAddr
@@ -310,13 +311,13 @@ int client::getMsg(int num, const string &user, bool log)
 
   char buf[1024];
 
-  bool postal = false;
-  bool gotSubject = false;
   enum STATE { eHeader, eBody, eEnd } state = eHeader;
   m_md5.init();
   bool md5Error = false;
   string logData;
-  do
+  char *from = NULL, *to = NULL, *subject = NULL, *msgid = NULL;
+  char *date = NULL, *postalHash = NULL;
+  while(state != eEnd)
   {
     rc = readLine(buf, sizeof(buf));
     if(rc < 0)
@@ -326,33 +327,56 @@ int client::getMsg(int num, const string &user, bool log)
     switch(state)
     {
     case eHeader:
-      if(!gotSubject && !strncmp(buf, "Subject: ", 9))
+      if(!from && !strncmp(buf, "From: ", 6))
+        from = strdup(buf);
+      else if(!to && !strncmp(buf, "To: ", 4))
+        to = strdup(buf);
+      else if(!subject && !strncmp(buf, "Subject: ", 9))
+        subject = strdup(buf);
+      else if(!date && !strncmp(buf, "Date: ", 6))
+        date = strdup(buf);
+      else if(!msgid && !strncmp(buf, "Message-Id: ", 12))
+        msgid = strdup(buf);
+      else if(!postalHash && !strncmp(buf, "X-PostalHash: ", 14))
       {
-        gotSubject = true;
-        m_md5.addData(buf, strlen(buf));
-      }
-      else if(!postal && !strncmp(buf, "X-Postal: ", 10))
-      {
-        postal = true;
+        postalHash = strdup(buf + 14);
+        char *tmp = strchr(postalHash, '\r');
+        if(tmp)
+          *tmp = 0;
       }
       else if(!strcmp(buf, "\r\n"))
       {
         state = eBody;
+        if(from)
+          m_md5.addData(from, strlen(from));
+        if(to)
+          m_md5.addData(to, strlen(to));
+        if(subject)
+          m_md5.addData(subject, strlen(subject));
+        if(date)
+          m_md5.addData(date, strlen(date));
+        if(msgid)
+          m_md5.addData(msgid, strlen(msgid));
       }
     break;
     case eBody:
-      if(postal)
+      if(strcmp(buf, ".\r\n"))
       {
-        if(!strncmp(buf, "MD5:", 4))
+        if(postalHash)
+          m_md5.addData(buf, strlen(buf));
+      }
+      else
+      {
+        state = eEnd;
+        if(postalHash)
         {
           string sum(m_md5.getSum());
-          strtok(buf, "\r");
-          if(sum != &buf[4])
+          if(strcmp(sum.c_str(), postalHash))
           {
             if(log || !m_log)
             {
               string errStr("MD5 mis-match, calculated:");
-              errStr += sum + ", expected " + &buf[4] + "!\nAccount name "
+              errStr += sum + ", expected " + postalHash + "!  Account name "
                       + user + "\n";
               if(m_log)
                 m_log->Write(errStr);
@@ -368,27 +392,12 @@ int client::getMsg(int num, const string &user, bool log)
               m_log->Write(sum);
             } 
           }
-          state = eEnd;
         }
-        else
-        {
-          m_md5.addData(buf, strlen(buf));
-        }
-      }
-    break;
-    case eEnd:
-      if(strcmp(buf, ".\r\n"))
-      {
-        if(strcmp(buf, "\r\n") && m_qmail_pop != eWONT)
-        {
-          fprintf(stderr, "End of message data but not end of POP data.\n");
-          md5Error = true;
-        }
-      }
+        break;
+      } // end else \r\n
     break;
     }
   }
-  while(strcmp(buf, ".\r\n"));
 
   if(log)
     m_log->Write(logData);
@@ -427,7 +436,7 @@ int client::list()
       return rc;
     i++;
   }
-  while(strcmp(buf, ".\r\n"));
+  while(buf[0] != '.');
   return i;
 }
 

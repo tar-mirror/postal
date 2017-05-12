@@ -65,8 +65,8 @@ void results::m_print()
 {
   time_t now = time(NULL);
     tm *t = localtime(&now);
-    printf("%02d:%02d,%d,%d,%d", t->tm_hour, t->tm_min, m_msgs
-                               , m_bytes / 1024, m_errors);
+    printf("%02d:%02d,%u,%u,%u", t->tm_hour, t->tm_min, m_msgs
+                               , (unsigned int)m_bytes / 1024, m_errors);
 #ifdef USE_SSL
     printf(",%d,%d", m_connections, m_ssl_connections);
     m_ssl_connections = 0;

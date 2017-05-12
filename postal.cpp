@@ -24,7 +24,7 @@ void usage()
 #ifdef USE_SSL
          "              [-s ssl-percentage]\n"
 #endif
-         "              [-l local-address] [-f sender-file]\n"
+         "              [-L] [-l local-address] [-f sender-file]\n"
          "              smtp-server user-list-filename\n"
          "\n"
          "Postal Version: " VER_STR "\n");
@@ -53,11 +53,14 @@ int main(int argc, char **argv)
   PCCHAR debugName = NULL;
   PCCHAR senderFile = NULL;
   bool debugMultipleFiles = false;
+  bool useLMTP = false;
 #ifdef USE_SSL
   int ssl = 0;
 #endif
 #ifdef USE_GNUTLS
+#if GNUTLS_VERSION_NUMBER <= 0x020b00
   gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
+#endif
   gnutls_global_init();
   if(!gnutls_check_version(GNUTLS_VER))
   {
@@ -68,7 +71,7 @@ int main(int argc, char **argv)
   unsigned short port = 25;
 
   int c;
-  while(-1 != (c = getopt(argc, argv, "ab:f:m:M:p:s:t:c:r:l:z:Z:")) )
+  while(-1 != (c = getopt(argc, argv, "ab:f:m:M:p:s:t:c:r:Ll:z:Z:")) )
   {
     switch(char(c))
     {
@@ -87,6 +90,12 @@ int main(int argc, char **argv)
       break;
       case 'f':
           senderFile = optarg;
+      break;
+      case 'L':
+        useLMTP = true;
+      break;
+      case 'l':
+        ourAddr = optarg;
       break;
       case 'm':
         maxMsgSize = atoi(optarg);
@@ -112,9 +121,6 @@ int main(int argc, char **argv)
       break;
       case 'r':
         msgsPerMinute = atoi(optarg);
-      break;
-      case 'l':
-        ourAddr = optarg;
       break;
       case 'Z':
         debugMultipleFiles = true;
@@ -180,7 +186,7 @@ int main(int argc, char **argv)
     debug = new Logit(debugName, false, debugMultipleFiles, 0);
 
   smtp mailer(&exitCount, argv[optind], ourAddr, ul, senderList, minMsgSize
-            , maxMsgSize, msgsPerConnection, processes, &log, netscape
+            , maxMsgSize, msgsPerConnection, processes, &log, netscape, useLMTP
 #ifdef USE_SSL
             , ssl
 #endif

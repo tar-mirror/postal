@@ -70,15 +70,14 @@ base_tcp::~base_tcp()
 
 void base_tcp::m_initialize_tls_session()
 {
-  const int kx_prio[] = { GNUTLS_KX_ANON_DH, 0 };
-
   gnutls_init(&m_gnutls_session, GNUTLS_SERVER);
 
   /* avoid calling all the priority functions, since the defaults
    * are adequate.
    */
   gnutls_set_default_priority(m_gnutls_session);
-  gnutls_kx_set_priority(m_gnutls_session, kx_prio);
+  // Need to enable anonymous specifically
+  gnutls_priority_set_direct(m_gnutls_session, "NORMAL:+ANON-DH", NULL);
 
   gnutls_credentials_set(m_gnutls_session, GNUTLS_CRD_ANON, m_anoncred);
 

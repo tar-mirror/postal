@@ -32,9 +32,9 @@ protected:
   Mutex m_mut;
 private:
 
-  int m_msgs;
-  int m_bytes;
-  int m_errors;
+  unsigned int m_msgs;
+  unsigned long long m_bytes;
+  unsigned int m_errors;
 };
 
 #endif

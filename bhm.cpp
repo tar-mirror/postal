@@ -320,7 +320,9 @@ int main(int argc, char **argv)
 #endif
   unsigned short port = 25;
 #ifdef USE_GNUTLS
+#if GNUTLS_VERSION_NUMBER <= 0x020b00
   gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
+#endif
   gnutls_global_init();
   if(!gnutls_check_version(GNUTLS_VER))
   {

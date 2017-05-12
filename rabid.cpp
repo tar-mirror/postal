@@ -59,7 +59,9 @@ int main(int argc, char **argv)
   bool debugMultipleFiles = false;
   bool strip_domain = false;
 #ifdef USE_GNUTLS
+#if GNUTLS_VERSION_NUMBER <= 0x020b00
   gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
+#endif
   gnutls_global_init();
   if(!gnutls_check_version(GNUTLS_VER))
   {

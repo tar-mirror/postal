@@ -97,11 +97,11 @@ The
 .B \-u
 switch causes the domain of user-names to be ignored.  This allows you to have
 a single file with user-names and passwords which can be used by postal and
-rabid.  By default postal will ignore the password field, rabid may or may not
-need the domain depending on the configuration of the POP server.  The default
-is to use the domain (which is required if the same user is present in
-multiple domains), this switch causes the domain part to be stripped from the
-user-name field.
+rabid when using a server which doesn't accept a domain.  By default postal
+will ignore the password field, rabid may or may not need the domain depending
+on the configuration of the POP server.  The default is to use the domain
+(which is required if the same user is present in multiple domains), this
+switch causes the domain part to be stripped from the user-name field.
 .P
 The
 .B \-z

@@ -14,7 +14,7 @@ smtpData::smtpData()
  : m_quit("QUIT\r\n")
  , m_randomLetters("abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890 `~!@#$%^&*()-_=+[]{};:'\"|/?<>,")
  , m_randomLen(strlen(m_randomLetters))
- , m_postalMsg("X-Postal: " VER_STR " - the mad postman.\r\n"
+ , m_postalMsg("\r\nX-Postal: " VER_STR " - the mad postman.\r\n"
                "X-Postal: http://www.coker.com.au/postal/\r\n"
                "X-Postal: This is not a real email.\r\n\r\n")
  , m_dnsLock(true)
@@ -34,7 +34,19 @@ const string *smtpData::getMailName(struct sockaddr_in &in)
   h = gethostbyaddr((char *)&(in.sin_addr), sizeof(in.sin_addr), AF_INET);
   if(!h)
   {
-    name = new string(inet_ntoa(in.sin_addr));
+    FILE *fp = fopen("/etc/mailname", "r");
+    char buf[100];
+    if(fp && fgets(buf, sizeof(buf), fp))
+    {
+      char *tmp = strchr(buf, '\n');
+      if(tmp)
+        *tmp = 0;
+      name = new string(buf);
+    }
+    else
+    { 
+      name = new string(inet_ntoa(in.sin_addr));
+    }
   }
   else
   {
@@ -58,34 +70,44 @@ void smtpData::setRand(int frequency)
   m_timeLastAction = time(NULL);
 }
 
-string smtpData::randomString(int max_len) const
+void smtpData::randomString(char *buf, int len) const
 {
-  if(max_len > 300)
-    max_len = 300;
-  max_len = random() % (max_len + 1);
-  int offset = random() % (MAP_SIZE - max_len);
-  string str(&m_randBuf[offset], max_len);
-  str += "\r\n";
-  if(!strncmp(str.c_str(), "MD5:", 4))
-    str[0] = 'Z';
+  if(len > 2)
+  {
+    int offset = random() % (MAP_SIZE - (len - 2));
+    memcpy(buf, &m_randBuf[offset], len - 2);
+  }
+  strcpy(buf + len - 2, "\r\n");
+}
 
-  return str;
+const int max_line_len = 79;
+
+void smtpData::randomBuf(char *buf, int len) const
+{
+  while(len)
+  {
+    int line_len = random() % max_line_len;
+    if(line_len < 2)
+      line_len = 2;
+    if(len - line_len < 2)
+      line_len = len;
+    randomString(buf, line_len);
+    len -= line_len;
+    buf += line_len;
+  }
 }
 
 // Return a random date that may be as much as 60 seconds in the future or 600 seconds in the past.
-const string smtpData::date() const
+// buffer must be at least 34 bytes for "Day, dd Mon yyyy hh:mm:ss +zzzz\r\n"
+void smtpData::date(char *buf) const
 {
   time_t t = time(NULL);
   struct tm broken;
-  // 44 chars for "Date: Day, dd Mon yyyy hh:mm:ss +zzzz\r\n"
-  char date_buf[44];
 
   t += 60 - random() % 600;
 
-  if(!gmtime_r(&t, &broken) || !strftime(date_buf, sizeof(date_buf), "Date: %a, %d %b %Y %H:%M:%S %z\r\n", &broken))
-    return string("Error making date\r\n");
-  
-  return string(date_buf);
+  if(!gmtime_r(&t, &broken) || !strftime(buf, 34, "%a, %d %b %Y %H:%M:%S %z\r\n", &broken))
+    strcpy(buf, "Error making date");
 }
 
 const string smtpData::msgId(const char *sender, const unsigned threadNum) const
@@ -100,7 +122,7 @@ const string smtpData::msgId(const char *sender, const unsigned threadNum) const
 
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  snprintf(msgId_buf, sizeof(msgId_buf), "Message-Id: <%08X.%03X.%03X.%s\r\n", unsigned(tv.tv_sec), unsigned(tv.tv_usec % 2048), threadNum % 2048, sender);
+  snprintf(msgId_buf, sizeof(msgId_buf), "<%08X.%03X.%03X.%s\r\n", unsigned(tv.tv_sec), unsigned(tv.tv_usec % 2048), threadNum % 2048, sender);
   return string(msgId_buf);
 }
 
@@ -144,7 +166,10 @@ int smtp::action(PVOID)
       for(int i = 0; i != msgs; i++)
       {
         if(*m_exitCount)
+        {
+          disconnect();
           return 1;
+        }
         rc = sendMsg();
         if(rc > 1)
           return 1;
@@ -166,7 +191,7 @@ int smtp::action(PVOID)
 smtp::smtp(int *exitCount, const char *addr, const char *ourAddr, UserList &ul
          , UserList *senderList, int minMsgSize, int maxMsgSize
          , int numMsgsPerConnection
-         , int processes, Logit *log, TRISTATE netscape
+         , int processes, Logit *log, TRISTATE netscape, bool useLMTP
 #ifdef USE_SSL
          , int ssl
 #endif
@@ -185,6 +210,7 @@ smtp::smtp(int *exitCount, const char *addr, const char *ourAddr, UserList &ul
  , m_res(new results)
  , m_netscape(netscape)
  , m_nextPrint(time(NULL)/60*60+60)
+ , m_useLMTP(useLMTP)
 {
   go(NULL, processes);
 }
@@ -234,7 +260,10 @@ int smtp::Connect()
   if(rc)
     return rc;
   const string *mailName = m_data->getMailName(m_connectionLocalAddr);
-  m_helo = string("EHLO ") + *mailName + "\r\n";
+  if(m_useLMTP)
+    m_helo = string("LHLO ") + *mailName + "\r\n";
+  else
+    m_helo = string("EHLO ") + *mailName + "\r\n";
   rc = sendCommandString(m_helo);
   if(rc)
     return rc;
@@ -284,36 +313,40 @@ int smtp::sendMsg()
     subject += "N";
   else if(m_netscape == eMUST)
     subject += " ";
-  subject += m_data->randomString(60);
-  m_md5.addData(subject);
-  string date = m_data->date();
-  m_md5.addData(date);
+  char subj_buf[61];
+  // random string from 2 to buffer len
+  int subj_len = random() % (sizeof(subj_buf) - 3) + 2;
+  m_data->randomString(subj_buf, subj_len);
+  subj_buf[subj_len] = 0;
+  subject += subj_buf;
+  char date[34];
+  m_data->date(date);
   string msgId = m_data->msgId(from.c_str(), getThreadNum());
-  m_md5.addData(msgId);
-  string str = string("To: ") + to + "\r\n"
-                + subject + date + msgId + "From: " + from + "\r\n"
-                + m_data->postalMsg();
+  string str = string("From: ") + from + "\r\nTo: " + to + "\r\n"
+                + subject + "Date: " + date + "Message-Id: " + msgId;
+  m_md5.addData(str);
+
+  char *sendbuf = (char *)malloc(size + 1);
+  m_data->randomBuf(sendbuf, size);
+  m_md5.addData(sendbuf, size);
+  string sum = m_md5.getSum();
+  str += "X-PostalHash: " + sum + m_data->postalMsg();
   rc = sendString(str);
   if(rc)
+  {
+    free(sendbuf);
     return rc;
+  }
   if(logAll)
     logData = str;
 
-  int sent = 0;
-  while(sent < size)
-  {
-    str = m_data->randomString(size - sent);
-    m_md5.addData(str);
-    rc = sendString(str);
-    if(rc)
-      return rc;
-    if(logAll)
-      logData += str;
-    sent += str.size();
-  }
-  str = "MD5:";
-  string sum(m_md5.getSum());
-  str += sum + "\r\n.\r\n";
+  rc = sendData(sendbuf, size);
+  if(rc)
+    return rc;
+  if(logAll)
+    logData += sendbuf;
+  free(sendbuf);
+  str = ".\r\n";
   rc = sendCommandString(str);
   if(rc)
     return rc;
@@ -325,7 +358,7 @@ int smtp::sendMsg()
   }
   else if(m_log)
   {
-    sum += "\n";
+    sum += " " + from + " " + to + "\n";
     m_log->Write(sum);
   }
   return 0;
@@ -341,7 +374,7 @@ ERROR_TYPE smtp::readCommandResp()
       return ERROR_TYPE(rc);
     if(recvBuf[0] != '2' && recvBuf[0] != '3')
     {
-      printf("Server error:%s.\n", recvBuf);
+      fprintf(stderr, "Server error:%s.\n", recvBuf);
       error();
       return eServer;
     }

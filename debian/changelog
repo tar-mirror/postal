@@ -1,3 +1,26 @@
+postal (0.71) unstable; urgency=low
+
+  * Made rabid get the password right when -u is used.  Thanks to Lars Nordin
+    for the patch.
+  * Made rabid correctly check for the '.' at the end of the results of the
+    list command.
+  * Made all the programs correctly handle a userlist that has empty lines.
+  * Use the -lgcrypt option when using gcrypt.
+  * Only call gcry_control() if GNUTLS_VERSION_NUMBER <= 0x020b00
+  * Ignore blank lines in user list.
+  * Add subject, date, and msgid to the md5sum in the client.
+    Closes: #611907
+  * Stop using gnutls_kx_set_priority()
+    Closes: #624038
+  * Added a patch from Michael Brown <michael@netdirect.ca> to make an RPM build
+    on RHEL5 (and probably other RPM systems).
+  * Added a patch from Brad Hards <bradh@frogmouth.net> to fix typos in the
+    man page.
+  * Rewrote a lot of the md5 checking code, now the md5 hash is stored in a
+    header.  It should work now.
+
+ -- Russell Coker <russell@coker.com.au>  Mon, 02 Jan 2012 17:08:50 +1100
+
 postal (0.70) unstable; urgency=low
 
   * Made it build correctly when no SSL support is configured.  Also tidy

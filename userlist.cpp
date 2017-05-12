@@ -25,7 +25,7 @@ UserList::UserList(const char *userListFile, bool usePass, bool stripDom)
   while(fgets(buf, sizeof(buf), fp) )
   {
     strtok(buf, "\n");
-    if(buf[0] && buf[0] != '#')
+    if(buf[0] != '\n' && buf[0] != '\r' && buf[0] != '#')
     {
       strtok(buf, " ");
       char *pass = strtok(NULL, " ");
@@ -34,11 +34,11 @@ UserList::UserList(const char *userListFile, bool usePass, bool stripDom)
         printf("Need a password for \"%s\".", buf);
         continue;
       }
+      if(usePass)
+        m_passwords->push_back(buf + strlen(buf) + 1);
       if(stripDom)
         strtok(buf, "@");
       m_users->push_back(buf);
-      if(usePass)
-        m_passwords->push_back(buf + strlen(buf) + 1);
       if(strlen(buf) > m_maxNameLen)
         m_maxNameLen = strlen(buf);
     }

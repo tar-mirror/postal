@@ -5,7 +5,7 @@ MAN1=postal-list.1
 
 all: $(EXE) $(SEXE)
 
-prefix=/home/rjc/postal/postal-0.70/debian/postal/usr
+prefix=/usr/local
 eprefix=${prefix}
 WFLAGS=-Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -pedantic
 WPLUS=-Woverloaded-virtual -ffor-scope
@@ -18,7 +18,7 @@ INSTALL=/usr/bin/install -c
 TESTEXE=ex-test
 BASEOBJS=userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o expand.o md5.o
 LFLAGS=-lstdc++  -lpthread
-CRYPTLFLAGS=-lstdc++  -lpthread -lgnutls
+CRYPTLFLAGS=-lstdc++  -lpthread -lgnutls -lgcrypt
 
 
 ALLOBJS=$(BASEOBJS) smtp.o client.o basictcp.o bhmusers.o smtpserver.o

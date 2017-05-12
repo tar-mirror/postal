@@ -215,9 +215,8 @@ int tcp::ConnectTLS()
   gnutls_init (m_gnutls_session, GNUTLS_CLIENT);
   // Use default priorities
   gnutls_set_default_priority(*m_gnutls_session); // bug in gnutls interface?
-  // Need to enable anonymous KX specifically
-  const int kx_prio[] = { GNUTLS_KX_ANON_DH, 0 };
-  gnutls_kx_set_priority(*m_gnutls_session, kx_prio);
+  // Need to enable anonymous specifically
+  gnutls_priority_set_direct(*m_gnutls_session, "NORMAL:+ANON-DH", NULL);
   // put the anonymous credentials to the current session
   gnutls_credentials_set(*m_gnutls_session, GNUTLS_CRD_ANON, m_gnutls_anoncred);
   gnutls_transport_set_ptr(*m_gnutls_session, (gnutls_transport_ptr_t)m_fd);

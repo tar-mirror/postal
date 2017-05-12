@@ -6,12 +6,12 @@ postal \- program to test SMTP mail server throughput.
 .B postal
 .I [\-m maximum\-message\-size] [\-M minimum\-message\-size] [\-t threads]
 .I [\-c messages\-per\-connection] [\-r messages\-per\-minute] [\-s ssl\-percentage]
-.I [\-l local\-address] [\-a] [\-b [no]netscape] [\-[z|Z] debug\-file]
+.I [\-L] [\-l local\-address] [\-a] [\-b [no]netscape] [\-[z|Z] debug\-file]
 .I [\-f sender\-file] smtp\-server user\-list\-filename
 
 .SH "DESCRIPTION"
 This manual page documents briefly the
-.BR postal ,
+.BR postal
 program.
 .P
 It is designed to test the performance of SMTP email servers by sending random
@@ -24,10 +24,10 @@ is to be sent to.  Mail sent by
 .B Postal
 will not use MX records, this is to allow testing outbound relays etc.  If you
 want to specify a port other than port 25 then enclose the host address in
-square brackets and have the port address immidiately following.  If you want
+square brackets and have the port address immediately following.  If you want
 a DNS lookup for every connection (for testing round\-robin DNS) then
-immediately preceed the host address with a '+' character.  To specify multiple
-servers for round\-robin use then seperate the addresses with commas.  Note
+immediately precede the host address with a '+' character.  To specify multiple
+servers for round\-robin use then separate the addresses with commas.  Note
 that
 .B localhost
 is used for connecting to the same machine.
@@ -56,7 +56,7 @@ connection rate.  The default value is 10.
 The
 .B threads
 parameter is the number of threads that should be created to attempt
-seperate connections.  A well configured mail server won't accept an unlimited
+separate connections.  A well configured mail server won't accept an unlimited
 number of connections so make sure you don't specify a number larger than the
 number your mail server is configured to handle.  Also for sensible results
 make sure that you don't use enough to make your server thrash as the results
@@ -70,7 +70,7 @@ will give 20 threads total.
 The
 .B messages\-per\-connection
 parameter is for sending more than one message per SMTP connection.  The
-default value is "1".  A value of \-1 means to send an indefinate number of
+default value is "1".  A value of \-1 means to send an indefinite number of
 messages on one connection (~4 billion).  If a value > 1 is specified then
 the number sent on each connection is a random number between 1 and the number
 specified.  For simulating a mail server connected directly to the net use a
@@ -91,6 +91,9 @@ parameter specifies which local IP address(es) are used to make the outbound
 connections.  Specified in the same way as the remote address.  This is good
 for testing LocalDirectors or other devices that perform differently depending
 on which source IP address was used.
+.P
+The \-L
+command specifies that LMTP is to be used instead of SMTP.
 .P
 The
 .B \-a
@@ -127,11 +130,14 @@ file is used to log all IO performed by that thread for debugging purposes.
 The
 .B \-Z
 switch is the same but creates a separate file for each connection as well
-with an attitional ':' appended followed by the connection number.
+with an additional ':' appended followed by the connection number.
 
 .SH "NOTES"
 
-When testing mail servers please use domains defined in http://www.rfc-editor.org/rfc/rfc2606.txt - example.com, example.net, and example.org are all good options.  Please don't use anything related to a valid name, that will cause pain for you and others on the net.
+When testing mail servers please use domains defined in
+http://www.rfc-editor.org/rfc/rfc2606.txt - example.com, example.net, and example.org
+ are all good options.  Please don't use anything related to a valid name, since
+that will cause pain for you and others on the net.
 
 .SH "RETURN CODES"
 .TP

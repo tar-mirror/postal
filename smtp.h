@@ -39,9 +39,12 @@ public:
   ~smtpData();
 
   const string &quit() const { return m_quit; }
-  // return a random string that ends with "\r\n"
-  string randomString(int max_len) const;
-  const string date() const;
+  // create a random string of length len that includes a trailing "\r\n"
+  // string is not zero terminated
+  void randomString(char *buf, int len) const;
+  // fill a buffer with random lines of text
+  void randomBuf(char *buf, int len) const;
+  void date(char *buf) const;
   const string msgId(const char *sender, const unsigned threadNum) const;
 
   // return the X-Postal lines
@@ -81,6 +84,7 @@ public:
   smtp(int *exitCount, const char *addr, const char *ourAddr
      , UserList &ul, UserList *senderList, int minMsgSize, int maxMsgSize
      , int numMsgsPerConnection, int processes, Logit *log, TRISTATE netscape
+     , bool useLMTP
 #ifdef USE_SSL
      , int ssl
 #endif
@@ -118,6 +122,7 @@ private:
   TRISTATE m_netscape;
   string m_helo;
   time_t m_nextPrint;
+  bool m_useLMTP;
 
   smtp(const smtp&);
   smtp & operator=(const smtp&);
