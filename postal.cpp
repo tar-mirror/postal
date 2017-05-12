@@ -13,14 +13,14 @@ void usage()
 {
   printf("Usage: postal [-m maximum-message-size] [-p processes] [-l local-address]\n"
          "              [-c messages-per-connection] [-r messages-per-minute] [-a]\n"
-         "              [-b [no]netscape]\n"
+         "              [-b [no]netscape] [-[z|Z] debug-file]\n"
 #ifdef USE_SSL
          "              [-s ssl-percentage]\n"
 #endif
          "              smtp-server user-list-filename conversion-filename\n"
          "\n"
          "Postal Version: " VER_STR "\n");
-  exit(1);
+  exit(eParam);
 }
 
 int main(int argc, char **argv)
@@ -32,12 +32,15 @@ int main(int argc, char **argv)
   const char *ourAddr = NULL;
   bool allLog = false;
   TRISTATE netscape = eNONE;
+  PCCHAR debugName = NULL;
+  bool debugMultipleFiles = false;
 #ifdef USE_SSL
   int ssl = 0;
 #endif
 
   int c;
-  while(-1 != (c = getopt(argc, argv, "ab:m:p:s:c:r:l:")) )
+  optind = 0;
+  while(-1 != (c = getopt(argc, argv, "ab:m:p:s:c:r:l:z:Z:")) )
   {
     switch(char(c))
     {
@@ -76,6 +79,11 @@ int main(int argc, char **argv)
       case 'l':
         ourAddr = optarg;
       break;
+      case 'Z':
+        debugMultipleFiles = true;
+      case 'z':
+        debugName = optarg;
+      break;
     }
   }
   if(maxMsgSize < 0 || maxMsgSize > MAX_MSG_SIZE)
@@ -99,7 +107,7 @@ int main(int argc, char **argv)
   if(pipe(fd))
   {
     printf("Can't create pipe.\n");
-    return 1;
+    return eSystem;
   }
   struct sigaction sa;
   sa.sa_handler = SIG_IGN;
@@ -108,7 +116,7 @@ int main(int argc, char **argv)
   if(sigaction(SIGPIPE, &sa, NULL))
   {
     printf("Can't block SIGPIPE.\n");
-    return 1;
+    return eSystem;
   }
   printf("time,messages,data(K),errors,connections"
 #ifdef USE_SSL
@@ -116,14 +124,18 @@ int main(int argc, char **argv)
 #endif
     "\n");
 
-  Logit log("postal.log", allLog);
+  Logit log("postal.log", allLog, false, 0);
+  Logit *debug = NULL;
+
+  if(debugName)
+    debug = new Logit(debugName, false, debugMultipleFiles, 0);
+
   smtp mailer(argv[optind], ourAddr, ul, maxMsgSize
             , msgsPerConnection, processes, &log, netscape
 #ifdef USE_SSL
-            , ssl);
-#else
-            );
+            , ssl
 #endif
+            , debug);
 
   return mailer.doAllWork(msgsPerMinute);
 }

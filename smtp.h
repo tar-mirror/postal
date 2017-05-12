@@ -1,6 +1,7 @@
 #ifndef SMTP_H
 #define SMTP_H
 
+using namespace std;
 #include <string>
 #include <time.h>
 #include <hash_map.h>
@@ -71,7 +72,7 @@ public:
 #ifdef USE_SSL
      , int ssl
 #endif
-      );
+     , Logit *debug);
 
   virtual ~smtp();
 
@@ -91,8 +92,8 @@ private:
   int pollRead();
   virtual int WriteWork(PVOID buf, int size, int timeout);
 
-  virtual int readCommandResp(bool) { return readCommandResp(); }
-  int readCommandResp();
+  virtual ERROR_TYPE readCommandResp(bool) { return readCommandResp(); }
+  ERROR_TYPE readCommandResp();
   void error();
   virtual void sentData(int bytes);
   virtual void receivedData(int);

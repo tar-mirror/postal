@@ -1,31 +1,31 @@
-.TH postal-list 8
-.SH NAME
-postal-list \- program to show how postal expands user names
+.TH "postal-list" "8" "0.60" "russell@coker.com.au" "Postal"
+.SH "NAME"
+postal\-list \- program to show how postal expands user names
 
-.SH SYNOPSIS
-.B postal-list
-.I user-list-filename conversion-filename
+.SH "SYNOPSIS"
+.B postal\-list
+.I user\-list\-filename conversion\-filename
 
 .SH "DESCRIPTION"
 This program shows the expansion that the
 .B postal
 program uses on email addresses.  This can be used to make sure that you're
 configuration files do what you expect them to, and can also be used to produce
-a list of user-names for an account creation script (in case you want to create
+a list of user\-names for an account creation script (in case you want to create
 a million test accounts in a conveniant fashion).
 .P
 The
-.B user-list-filename
+.B user\-list\-filename
 is the name of a file which contains a list of user's email addresses.  This
-can be just user-names or fully qualified email addresses.
+can be just user\-names or fully qualified email addresses.
 .P
 The
-.B conversion-filename
+.B conversion\-filename
 parameter will be the name of a file
 containing the conversions to apply to email addresses.  Each line in the
 file can either be a comment (starting with "#") or is to contain two
 parameters.  The first parameter is the regular expression.  For each email
-that is to be sent a randomly selected user-name will be checked against all
+that is to be sent a randomly selected user\-name will be checked against all
 regular expressions, the first match will determine the translation that is
 to be applied.  The translation will be the second parameter on the line.  It
 will contain a number of "." characters specifying characters in the name that
@@ -34,9 +34,17 @@ can be specified inside square brackets.  For example to have every address
 starting with "a" have a character from "01234567890abc" as it's second
 character and a character from "xyz" as it's third character you would have the
 following:
-.B ^a .[0-9abc][xyz]
+.B ^a .[0\-9abc][xyz]
 
-.SH AUTHOR
+.SH "RETURN CODES"
+.TP
+.B 0
+No Error
+.TP
+.B 1
+Bad Parameters
+
+.SH "AUTHOR"
 This program, it's manual page, and the Debian package were written by
 Russell Coker <russell@coker.com.au>.
 

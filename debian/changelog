@@ -1,3 +1,29 @@
+postal (0.60) unstable; urgency=high
+
+  * Added #include <stdlib.h> to mutex.cpp to make exit() be resolved correctly.
+
+  * Fixed the delete percentage code for rabid.  The option "-d100:0" will mean
+    that no messages get deleted.
+
+  * Added a new version of the thread code from Bonnie++, fixes a few bugs.
+
+  * Made the configure.in more like that from Bonnie++.
+
+  * Added new debugging code to log to disk all network IO.
+
+  * Made IMAP default to port 143, not that it matters much as IMAP is still
+    broken.
+
+  * Tidied up some of the error handling code.
+
+  * Changed the threading code to monitor when threads exit so solve some
+    exit time crashes.
+
+  * Changed the header files to work with GCC 3.0.
+    Closes: #99859, #104965
+
+ -- Russell Coker <russell@coker.com.au>  Sun, 9 Sep 2001 00:41:20 +0200
+
 postal (0.59) unstable; urgency=high
 
   * Closes: #86932

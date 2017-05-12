@@ -16,10 +16,11 @@ void usage()
 #ifdef USE_SSL
          "             [-s ssl-percentage] [-d download-percentage[:delete-percentage]]\n"
 #endif
+         "             [-[z|Z] debug-file]\n"
          "             pop-server user-list-filename conversion-filename\n"
          "\n"
          "Rabid Version: " VER_STR "\n");
-  exit(1);
+  exit(eParam);
 }
 
 int main(int argc, char **argv)
@@ -36,9 +37,12 @@ int main(int argc, char **argv)
   int imap = 0;
   int downloadPercent = 100, deletePercent = 100;
   TRISTATE qmail_pop = eNONE;
+  PCCHAR debugName = NULL;
+  bool debugMultipleFiles = false;
 
   int c;
-  while(-1 != (c = getopt(argc, argv, "ab:d:c:i:l:p:r:s:")) )
+  optind = 0;
+  while(-1 != (c = getopt(argc, argv, "ab:d:c:i:l:p:r:s:z:Z:")) )
   {
     switch(char(c))
     {
@@ -79,6 +83,11 @@ int main(int argc, char **argv)
         usage();
 #endif
       break;
+      case 'Z':
+        debugMultipleFiles = true;
+      case 'z':
+        debugName = optarg;
+      break;
     }
   }
   if(processes < 1 || processes > MAX_PROCESSES || connectionsPerMinute < 0)
@@ -107,19 +116,23 @@ int main(int argc, char **argv)
   if(sigaction(SIGPIPE, &sa, NULL))
   {
     printf("Can't block SIGPIPE.\n");
-    return 1;
+    return eSystem;
   }
   printf("time,messages,data(K),errors,connections"
 #ifdef USE_SSL
          ",SSL connections,"
 #endif
          "IMAP connections\n");
-  Logit log("rabid.log", logAll);
+  Logit log("rabid.log", logAll, false, 0);
+  Logit *debug = NULL;
+ 
+  if(debugName)
+    debug = new Logit(debugName, false, debugMultipleFiles, 0);
   client popper(argv[optind], ourAddr, ul, processes, msgsPerConnection, &log
 #ifdef USE_SSL
               , ssl
 #endif
-              , qmail_pop, imap, downloadPercent, deletePercent);
+              , qmail_pop, imap, downloadPercent, deletePercent, debug);
 
   return popper.doAllWork(connectionsPerMinute);
 }

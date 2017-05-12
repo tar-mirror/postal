@@ -4,6 +4,7 @@
 // Misnamed really.  This class does all the common functionality between SMTP
 // and POP clients.
 
+using namespace std;
 #include "postal.h"
 #include <sys/poll.h>
 #include <string>
@@ -37,7 +38,7 @@ public:
 #ifdef USE_SSL
     , int ssl
 #endif
-    , const char *sourceAddr = NULL);
+    , const char *sourceAddr, Logit *debug);
   tcp(int threadNum, const tcp *parent);
   virtual ~tcp();
 
@@ -58,17 +59,17 @@ protected:
   virtual int WriteWork(PVOID buf, int size, int timeout) = 0;
 
   int readLine(char *buf, int bufSize);
-  int sendData(const char *buf, int size);
-  int sendString(const string &s) { return sendData(s.c_str(), s.size()); }
+  ERROR_TYPE sendData(CPCCHAR buf, int size);
+  ERROR_TYPE sendString(const string &s) { return sendData(s.c_str(), s.size()); }
   void endIt();
   virtual void error() = 0;
   virtual void sentData(int bytes) = 0;
   virtual void receivedData(int bytes) = 0;
   Cmd5 m_md5;
 
-  virtual int readCommandResp(bool important = true) = 0;
-  int sendCommandData(const char *buf, int size, bool important = true);
-  virtual int sendCommandString(const string &s, bool important = true);
+  virtual ERROR_TYPE readCommandResp(bool important = true) = 0;
+  virtual ERROR_TYPE sendCommandData(const char *buf, int size, bool important = true);
+  virtual ERROR_TYPE sendCommandString(const string &str, bool important = true);
 
   int m_destAffinity;
   Logit *m_log;
@@ -87,6 +88,7 @@ private:
   bool m_open;
   address *m_addr; // destination
   address *m_sourceAddr;
+  Logit *m_debug; // debug file management object (NULL if no debugging)
 #ifdef USE_SSL
   SSL_METHOD *m_sslMeth;
   SSL_CTX* m_sslCtx;

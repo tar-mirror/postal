@@ -87,12 +87,13 @@ client::client(const char *addr, const char *ourAddr, UserList &ul
 #ifdef USE_SSL
        , int ssl
 #endif
-       , TRISTATE qmail_pop, int imap, int downloadPercent, int deletePercent)
+       , TRISTATE qmail_pop, int imap, int downloadPercent, int deletePercent
+       , Logit *debug)
  : tcp(addr, 110, log
 #ifdef USE_SSL
      , ssl
 #endif
-     , ourAddr)
+     , ourAddr, debug)
  , m_ul(ul)
  , m_maxNameLen(ul.maxNameLen() + 1)
  , m_namesBuf(new char[m_maxNameLen * (processes + 1)])
@@ -150,7 +151,7 @@ void client::error()
   tcp::disconnect();
 }
 
-int client::readCommandResp(bool important)
+ERROR_TYPE client::readCommandResp(bool important)
 {
   char recvBuf[1024];
   int rc;
@@ -160,7 +161,7 @@ int client::readCommandResp(bool important)
     {
       rc = readLine(recvBuf, sizeof(recvBuf));
       if(rc < 0)
-        return rc;
+        return ERROR_TYPE(rc);
     }
     while(recvBuf[0] == '*');
 
@@ -170,29 +171,29 @@ int client::readCommandResp(bool important)
       if(important)
       {
         strtok(recvBuf, "\r\n");
-        printf("Server error:%s.\n", recvBuf);
+        fprintf(stderr, "Server error:%s.\n", recvBuf);
         error();
       }
-      return 1;
+      return eServer;
     }
   }
   else
   {
     rc = readLine(recvBuf, sizeof(recvBuf));
     if(rc < 0)
-      return rc;
+      return ERROR_TYPE(rc);
     if(recvBuf[0] != '+')
     {
       if(important)
       {
         strtok(recvBuf, "\r\n");
-        printf("Server error:%s.\n", recvBuf);
+        fprintf(stderr, "Server error:%s.\n", recvBuf);
         error();
       }
-      return 1;
+      return eServer;
     }
   }
-  return 0;
+  return eNoError;
 }
 
 int client::connect(const string &user, const string &pass)
@@ -200,7 +201,7 @@ int client::connect(const string &user, const string &pass)
   char aByte;
   int rc = Read(&aByte, 1, 0);
   if(rc != 1)
-    return 2;
+    return eCorrupt;
   if(m_isIMAP)
     return connectIMAP(user, pass);
   return connectPOP(user, pass);
@@ -214,7 +215,11 @@ int client::connectPOP(const string &user, const string &pass)
   m_res->connection();
   rc = readCommandResp();
   if(rc)
+  {
+    fprintf(stderr, "Can't establish connection.\n");
+    disconnect();
     return rc;
+  }
   // not supporting CAPA is OK.
   rc = sendCommandString("CAPA\r\n", false);
   if(rc > 1)
@@ -256,7 +261,7 @@ int client::connectPOP(const string &user, const string &pass)
 int client::connectIMAP(const string &user, const string &pass)
 {
   m_imapID = 0;
-  int rc = tcp::connect(220);
+  int rc = tcp::connect(143);
   if(rc)
     return rc;
   m_res->connection();
@@ -394,7 +399,7 @@ int client::getMsg(int num, const string &user, bool log)
   if(md5Error)
     m_res->error();
 
-  if(CHECK_PERCENT(m_downloadPercent))
+  if(CHECK_PERCENT(m_deletePercent))
   {
     sprintf(command, "dele %d\r\n", num);
     rc = sendCommandData(command, strlen(command));
@@ -463,7 +468,7 @@ int client::WriteWork(PVOID buf, int size, int timeout)
   return Write(buf, size, timeout);
 }
 
-int client::sendCommandString(const string &s, bool important)
+ERROR_TYPE client::sendCommandString(const string &s, bool important)
 {
   if(m_isIMAP)
   {

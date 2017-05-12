@@ -1,6 +1,7 @@
 #ifndef USERLIST_H
 #define USERLIST_H
 
+using namespace std;
 #include <vector.h>
 #include <string>
 

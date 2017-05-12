@@ -1,13 +1,14 @@
-.TH rabid 8
-.SH NAME
+.TH "rabid" "8" "0.60" "russell@coker.com.au" "Postal"
+.SH "NAME"
 rabid \- program to test POP server throughput.
 
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 .B rabid
-.I [-r max-connections-per-minute] [-p processes] [-l local-address]
-.I [-c messages-per-connection] [-a] [-s ssl-percentage] [-i imap-percentage]
-.I [-b qmail-pop] [-d download-percentage[:delete-percentage]]
-.I pop-server user-list-filename conversion-filename
+.I [\-r max\-connections\-per\-minute] [\-p processes] [\-l local\-address]
+.I [\-c messages\-per\-connection] [\-a] [\-s ssl\-percentage] [\-i imap\-percentage]
+.I [\-b qmail\-pop] [\-d download\-percentage[:delete\-percentage]]
+.I [\-[z|Z] debug\-file]
+.I pop\-server user\-list\-filename conversion\-filename
 
 .SH "DESCRIPTION"
 This manual page documents briefly the
@@ -20,22 +21,22 @@ will support rate limiting to provide a constant load (for testing SMTP
 servers).
 .P
 The
-.B pop-server
+.B pop\-server
 parameter specifies the IP address or name of the mail server that the mail
 is to downloaded from.  If you want to specify a port other than port 110 then
 enclose the host address in
 square brackets and have the port address immidiately following.  If you want
-a DNS lookup for every connection (for testing round-robin DNS) then
+a DNS lookup for every connection (for testing round\-robin DNS) then
 immediately preceed the host address with a '+' character.
 .P
 The
-.B user-list-filename
+.B user\-list\-filename
 is the name of a file which contains a list of user's email addresses and
 passwords.  It will have one address per line and the password follows the
 address with a space to seperate.
 .P
 If a
-.B conversion-filename
+.B conversion\-filename
 is specified then the names in this file will be taken as a template and
 expanded to make the real names (NB the passwords are not expanded).
 .P
@@ -50,34 +51,34 @@ seperate connections.  A well configured mail server won't accept an unlimited
 number of connections so make sure you don't specify a number larger than the
 number your mail server is configured to handle.  Also for sensible results
 make sure that you don't use enough to make your server thrash as the results
-won't be representative of real-world use.
+won't be representative of real\-world use.
 .P
 The
-.B max-connections-per-minute
+.B max\-connections\-per\-minute
 parameter is for limiting the number of connections that the program
 makes.  This is designed to be used when you want to test the performance
 of other programs when the system is under load.  The default is 24000
 connections per minute.
 .P
 The
-.B messages-per-connection
+.B messages\-per\-connection
 parameter specifies the maximum number of messages to download in a single POP
-session.  The default is -1 (unlimited).
+session.  The default is \-1 (unlimited).
 .P
 The
-.B local-address
+.B local\-address
 parameter specifies which local IP address(es) are used to make the outbound
 connections.  Specified in the same way as the remote address.  This is good
 for testing LocalDirectors or other devices that perform differently depending
 on which source IP address was used.
 .P
 The
-.B -a
+.B \-a
 command turns on all logging.  All message data received will be logged.  This
 will make it slow and it may not be able to saturate a fast Ethernet link...
 .P
 The
-.B -s
+.B \-s
 switch specifies the percentage of connections which are to use
 .B TLS
 AKA
@@ -86,26 +87,47 @@ Use 0 for no SSL, or 100 for always SSL, or any number in between.  Default is
 0.
 .P
 The
-.B -i
+.B \-i
 switch specifies the percentage of IMAP connections (default is POP).
 .P
 The
-.B -b
+.B \-b
 switch allows you to specify breakage strings.  Currently the only option is
 for Qmail POP server which adds an extra blank line at the end of each
 message.
-.B -b qmail-pop
+.B \-b qmail\-pop
 means to not report this as an error.
 .P
-.B -d download-percentage[:delete-percentage]
+.B \-d download\-percentage[:delete\-percentage]
 allows you to specify what percentage of the messages are downloaded and what
 percentage of the downloaded messages are deleted.  Default is 100%.
+.P
+The
+.B \-z
+switch allows you to specify a debugging file base.  From this base one file
+is created for each thread (with a ':' and the thread number appended), each
+file is used to log all IO performed by that thread for debugging purposes.
+.P
+The
+.B \-Z
+switch is the same but creates a separate file for each connection as well
+with an attitional ':' appended followed by the connection number.
 
-.SH BUGS
+.SH "BUGS"
 Doesn't actually do SSL or IMAP yet.
 
+.SH "RETURN CODES"
+.TP
+.B 0
+No Error
+.TP
+.B 1
+Bad Parameters
+.TP
+.B 2
+System Error, lack of memory or some other resource
 
-.SH AUTHOR
+.SH "AUTHOR"
 This program, it's manual page, and the Debian package were written by
 Russell Coker <russell@coker.com.au>.
 

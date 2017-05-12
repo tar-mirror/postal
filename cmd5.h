@@ -10,6 +10,7 @@ extern "C"
 #endif
 }
 
+using namespace std;
 #include <string>
 
 class Cmd5

@@ -16,7 +16,7 @@ tcp::tcp(const char *addr, unsigned short default_port, Logit *log
 #ifdef USE_SSL
        , int ssl
 #endif
-       , const char *sourceAddr)
+       , const char *sourceAddr, Logit *debug)
  : m_md5()
  , m_destAffinity(0)
  , m_log(log)
@@ -30,6 +30,7 @@ tcp::tcp(const char *addr, unsigned short default_port, Logit *log
  , m_open(false)
  , m_addr(new address(addr, default_port))
  , m_sourceAddr(NULL)
+ , m_debug(debug)
 #ifdef USE_SSL
  , m_sslMeth(NULL)
  , m_sslCtx(NULL)
@@ -65,6 +66,7 @@ tcp::tcp(int threadNum, const tcp *parent)
  , m_open(false)
  , m_addr(parent->m_addr)
  , m_sourceAddr(parent->m_sourceAddr)
+ , m_debug(parent->m_debug ? new Logit(*(parent->m_debug), threadNum) : NULL)
 #ifdef USE_SSL
  , m_sslMeth(NULL)
  , m_sslCtx(NULL)
@@ -82,6 +84,8 @@ tcp::~tcp()
     delete m_addr;
     delete m_sourceAddr;
   }
+  if(m_debug)
+    delete m_debug;
 }
 
 int tcp::connect(short port)
@@ -151,6 +155,8 @@ int tcp::connect(short port)
     close(m_fd);
     return 2;
   }*/
+  if(m_debug)
+    m_debug->reopen();
   m_open = true;
   return 0;
 }
@@ -262,10 +268,10 @@ int tcp::disconnect()
   return 0;
 }
 
-int tcp::sendData(const char *buf, int size)
+ERROR_TYPE tcp::sendData(CPCCHAR buf, int size)
 {
   if(!m_open)
-    return 1;
+    return eCorrupt;
   int sent = 0;
   m_poll.events = POLLOUT | POLLERR | POLLHUP | POLLNVAL;
   int rc;
@@ -274,15 +280,15 @@ int tcp::sendData(const char *buf, int size)
     rc = poll(&m_poll, 1, 60000);
     if(rc == 0)
     {
-      error();
       fprintf(stderr, "Server timed out on write.\n");
-      return 1;
+      error();
+      return eTimeout;
     }
     if(rc < 0)
     {
       fprintf(stderr, "Poll error.\n");
-      close(m_fd);
-      return 2;
+      error();
+      return eSocket;
     }
 #ifdef USE_SSL
     if(m_isTLS)
@@ -298,19 +304,21 @@ int tcp::sendData(const char *buf, int size)
     {
       fprintf(stderr, "Can't write to socket.\n");
       error();
-      return 1;
+      return eSocket;
     }
+    if(m_debug)
+      m_debug->Write(buf, rc);
     sent += rc;
   }
   sentData(size);
-  return 0;
+  return eNoError;
 }
 
 // fgets() doesn't
 int tcp::readLine(char *buf, int bufSize)
 {
   if(!m_open)
-    return -1;
+    return eCorrupt;
   int ind = 0;
   if(m_start < m_end)
   {
@@ -327,6 +335,8 @@ int tcp::readLine(char *buf, int bufSize)
     if(ind < bufSize)
       buf[ind] = '\0';
     receivedData(ind);
+    if(m_debug)
+      m_debug->Write(buf, ind);
     return ind;
   }
   // buffer is empty
@@ -343,13 +353,13 @@ int tcp::readLine(char *buf, int bufSize)
     {
       fprintf(stderr, "Server timed out on read.\n");
       error();
-      return -1;
+      return eSocket;
     }
     if(rc < 0)
     {
       fprintf(stderr, "Poll error.\n");
       error();
-      return -2;
+      return eCorrupt;
     }
 #ifdef USE_SSL
     if(m_isTLS)
@@ -365,7 +375,7 @@ int tcp::readLine(char *buf, int bufSize)
     {
       fprintf(stderr, "Read error.\n");
       error();
-      return -1;
+      return eSocket;
     }
     m_end = rc;
     do
@@ -380,6 +390,8 @@ int tcp::readLine(char *buf, int bufSize)
       if(ind < bufSize)
         buf[ind] = '\0';
       receivedData(ind);
+      if(m_debug)
+        m_debug->Write(buf, ind);
       return ind;
     }
     if(m_start == m_end)
@@ -391,14 +403,14 @@ int tcp::readLine(char *buf, int bufSize)
   return 0;
 }
 
-int tcp::sendCommandString(const string &s, bool important)
+ERROR_TYPE tcp::sendCommandString(const string &str, bool important)
 {
-  return sendCommandData(s.c_str(), s.size(), important);
+  return sendCommandData(str.c_str(), str.size(), important);
 }
 
-int tcp::sendCommandData(const char *buf, int size, bool important)
+ERROR_TYPE tcp::sendCommandData(const char *buf, int size, bool important)
 {
-  int rc = sendData(buf, size);
+  ERROR_TYPE rc = sendData(buf, size);
   if(rc)
     return rc;
   return readCommandResp(important);

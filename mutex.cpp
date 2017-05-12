@@ -3,6 +3,7 @@
 #include "mutex.h"
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 Mutex::Mutex(bool
 #ifdef LINUX_PTHREAD

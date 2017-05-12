@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(postal.cpp)
 AC_SUBST(version)
-version="0.59";
+version="0.60"
 
 AC_ARG_ENABLE(stripping,
       [  --disable-stripping  disables stripping of installed binaries],
@@ -23,6 +23,30 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_INSTALL
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_SIZE_T
+
+AC_SUBST(semun)
+AC_TRY_COMPILE(#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+    , union semun sem; , semun="yes")
+if [[ -n "$semun" ]]; then
+   semun="#define SEMUN_IN_SEM_H"
+fi
+
+AC_SUBST(bool)
+AC_TRY_COMPILE([], [bool var;] , , bool="typedef bool char;")
+AC_SUBST(true_false)
+AC_TRY_COMPILE(, [char c = true; char d = false;
+] , true_false="0", true_false="1")
+AC_SUBST(snprintf)
+AC_TRY_LINK([#include <stdio.h>], char buf[[10]]; snprintf(buf, sizeof(buf), "abc");,,snprintf="no");
+if [[ -n "$snprintf" ]]; then
+   snprintf="#define NO_SNPRINTF"
+fi
 
 AC_SUBST(extra_ldflags)
 extra_ldflags=
@@ -80,6 +104,8 @@ void * thread_func(void * param) { return NULL; }
   , extra_ldflags="$extra_ldflags -lpthread"
   , extra_ldflags="$extra_ldflags -pthread")
 
+AC_SUBST(large_file)
+large_file=""
 
 AC_SUBST(socklen_t)
 AC_TRY_COMPILE([#include <sys/types.h>
@@ -89,24 +115,6 @@ if [[ -n "$no_socklen_t" ]]; then
   socklen_t="#define socklen_t int"
 fi
 
-AC_SUBST(semun)
-AC_TRY_COMPILE(#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
-    , union semun sem; , semun="yes")
-if [[ -n "$semun" ]]; then
-   semun="#define SEMUN_IN_SEM_H"
-fi
-
-dnl Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_TYPE_SIZE_T
-
-AC_SUBST(bool)
-AC_TRY_COMPILE([], [bool var;] , , bool="typedef bool char;")
-AC_SUBST(true_false)
-AC_TRY_COMPILE(, [char c = true; char d = false;
-] , true_false="0", true_false="1")
 
 dnl Checks for library functions.
 

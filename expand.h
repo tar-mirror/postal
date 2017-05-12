@@ -1,6 +1,7 @@
 #ifndef EXPAND_H
 #define EXPAND_H
 
+using namespace std;
 #include <string>
 #include <sys/types.h>
 #include <regex.h>

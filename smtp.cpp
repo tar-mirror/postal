@@ -141,12 +141,12 @@ smtp::smtp(const char *addr, const char *ourAddr
 #ifdef USE_SSL
          , int ssl
 #endif
-          )
+         , Logit *debug)
  : tcp(addr, 25, log
 #ifdef USE_SSL
      , ssl
 #endif
-     , ourAddr)
+     , ourAddr, debug)
  , m_ul(ul)
  , m_msgSize(msgSize)
  , m_data(new smtpData())
@@ -199,7 +199,7 @@ int smtp::connect()
   if(rc)
     return rc;
   const string *mailName = m_data->getMailName(m_connectionSourceAddr);
-  m_helo = string("ehlo ") + *mailName + "\r\n";
+  m_helo = string("EHLO ") + *mailName + "\r\n";
   rc = sendCommandString(m_helo);
   if(rc)
     return rc;
@@ -289,19 +289,19 @@ int smtp::sendMsg()
   return 0;
 }
 
-int smtp::readCommandResp()
+ERROR_TYPE smtp::readCommandResp()
 {
   char recvBuf[1024];
   do
   {
     int rc = readLine(recvBuf, sizeof(recvBuf));
     if(rc < 0)
-      return rc;
+      return ERROR_TYPE(rc);
     if(recvBuf[0] != '2' && recvBuf[0] != '3')
     {
       printf("Server error:%s.\n", recvBuf);
       error();
-      return 1;
+      return eServer;
     }
 #ifdef USE_SSL
     if(!m_canTLS)
@@ -315,7 +315,7 @@ int smtp::readCommandResp()
 #endif
   }
   while(recvBuf[3] == '-');
-  return 0;
+  return eNoError;
 }
 
 int smtp::pollRead()
