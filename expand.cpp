@@ -1,8 +1,8 @@
 #include "expand.h"
 // for strdup() and strtok()
-#include <string.h>
+#include <cstring>
 // for random()
-#include <stdlib.h>
+#include <cstdlib>
 #include <stdio.h>
 
 typedef char * PCHAR;

@@ -1,5 +1,6 @@
 #include "client.h"
 #include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 #include "userlist.h"
 #include "logit.h"

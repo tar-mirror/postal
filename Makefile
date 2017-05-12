@@ -5,7 +5,7 @@ MAN1=postal-list.1
 
 all: $(EXE) $(SEXE)
 
-prefix=/home/rjc/postal/postal-0.68/debian/postal/usr
+prefix=/home/rjc/postal/postal-0.69/debian/postal/usr
 eprefix=${prefix}
 WFLAGS=-Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -pedantic
 WPLUS=-Woverloaded-virtual -ffor-scope

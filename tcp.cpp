@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <cstring>
 #include "postal.h"
 #include "userlist.h"
 #include "address.h"

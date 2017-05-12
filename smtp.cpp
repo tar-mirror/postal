@@ -8,6 +8,7 @@
 #include "userlist.h"
 #include "logit.h"
 #include "results.h"
+#include <cstring>
 
 smtpData::smtpData()
  : m_quit("QUIT\r\n")
@@ -22,7 +23,7 @@ smtpData::smtpData()
   setRand(0);
 }
 
-const string * const smtpData::getMailName(struct sockaddr_in &in)
+const string *smtpData::getMailName(struct sockaddr_in &in)
 {
   Lock l(m_dnsLock);
   unsigned long ip = in.sin_addr.s_addr;

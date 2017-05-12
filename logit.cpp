@@ -1,5 +1,6 @@
 #include "logit.h"
 #include <limits.h>
+#include <cstring>
 
 Logit::Logit(const char *filename, bool is_verbose, bool numbered_files, int pid)
  : m_verbose(is_verbose)

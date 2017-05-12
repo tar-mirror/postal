@@ -1,5 +1,6 @@
 #include "bhmusers.h"
 #include <stdio.h>
+#include <cstring>
 #include "expand.h"
 
 BHMUsers::BHMUsers(const char *userListFile)

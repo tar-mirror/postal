@@ -3,6 +3,7 @@
 
 using namespace std;
 #include <string>
+#include <cstring>
 #include <time.h>
 #include "conf.h"
 #ifdef HAVE_EXT_HASH_MAP
@@ -52,7 +53,7 @@ public:
   void setRand(int frequency);
 
   // get the mail name for an IP address
-  const string * const getMailName(struct sockaddr_in &in);
+  const string *getMailName(struct sockaddr_in &in);
 
 private:
   // Some const strings that we only want one copy of

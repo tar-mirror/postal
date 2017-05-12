@@ -1,6 +1,6 @@
 #include "expand.h"
 #include <cstdlib>
-#include <string>
+#include <cstring>
 #include <stdio.h>
 
 

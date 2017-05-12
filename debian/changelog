@@ -1,3 +1,17 @@
+postal (0.69) unstable; urgency=low
+
+  * Really fix the GCC 4.3 issues.  The main change was to remove the
+    OS/2 and Win32 support (which probably didn't work anyway).  The previous
+    version actually fixed GCC 4.2 issues.  I don't plan to fix the
+    ext/hash_map issue yet, it doesn't stop anything from working and I'm
+    afraid of breaking things for the majority of systems which use older
+    headers.  Thanks to Bradley Smith and Chris Lamb for sending a patch.
+    Closes: #474831
+    Thanks to Martin Michlmayr for sending a patch.
+    Closes: #417480
+
+ -- Russell Coker <russell@coker.com.au>  Sat, 19 Apr 2008 08:07:00 +1000
+
 postal (0.68) unstable; urgency=low
 
   * Added $(DESTDIR) support to the Makefile and -lrt for nanosleep() on

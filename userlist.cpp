@@ -1,5 +1,6 @@
 #include "userlist.h"
 #include <cstdlib>
+#include <cstring>
 #include <stdio.h>
 #include "expand.h"
 

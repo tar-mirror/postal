@@ -5,6 +5,7 @@ using namespace std;
 #include "postal.h"
 #include <sys/poll.h>
 #include <string>
+#include <cstring>
 #include <sys/types.h>
 #include <netinet/in.h>
 

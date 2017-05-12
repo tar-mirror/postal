@@ -3,10 +3,8 @@
 
 #include "port.h"
 
-#ifndef NON_UNIX
 #include <sys/poll.h>
 #include <pthread.h>
-#endif
 
 class Thread;
 
@@ -51,20 +49,18 @@ protected:
   int Write(PVOID buf, int size, int timeout = 60);
 
 protected:
-  FILE_TYPE m_read;
-  FILE_TYPE m_write;
+  int m_read;
+  int m_write;
 private:
 
   int m_threadNum;
 
-#ifndef NON_UNIX
   pollfd m_readPoll;
   pollfd m_writePoll;
-#endif
-  FILE_TYPE m_parentRead;
-  FILE_TYPE m_parentWrite;
-  FILE_TYPE m_childRead;
-  FILE_TYPE m_childWrite;
+  int m_parentRead;
+  int m_parentWrite;
+  int m_childRead;
+  int m_childWrite;
   int m_numThreads;
   int *m_retVal;
   pthread_t *m_thread_info;
@@ -73,15 +69,7 @@ private:
   Thread & operator =(const Thread &f);
 
 
-#ifdef NON_UNIX
-#ifdef OS2
-friend VOID APIENTRY thread_func(ULONG param);
-#else
-friend void( __cdecl thread_func )( void *param);
-#endif
-#else
-friend PVOID thread_func(PVOID param);
-#endif
+  friend PVOID thread_func(PVOID param);
 };
 
 #endif

@@ -1,7 +1,7 @@
 #include "address.h"
-#include <string.h>
+#include <cstring>
 #include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <netdb.h>
 #include <sys/socket.h>
 
@@ -48,7 +48,8 @@ address::address(const char *addr, unsigned short default_port)
     {
       hostname++;
       int j;
-      for(j = 0; hostname[j] && hostname[j] != ']'; j++);
+      for(j = 0; hostname[j] && hostname[j] != ']'; j++)
+        {}
  
       if(!hostname[j])
       {
