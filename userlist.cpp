@@ -28,7 +28,7 @@ UserList::UserList(const char *userListFile, bool usePass, bool stripDom)
     if(buf[0] != '\n' && buf[0] != '\r' && buf[0] != '#')
     {
       strtok(buf, " ");
-      char *pass = strtok(NULL, " ");
+      char *pass = strtok(NULL, " \t");
       if(!pass && usePass)
       {
         printf("Need a password for \"%s\".", buf);

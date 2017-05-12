@@ -1,3 +1,10 @@
+postal (0.72) unstable; urgency=low
+
+  * Make LMTP work.
+  * Accept a tab as a field delimiter for the user-list file.
+
+ -- Russell Coker <russell@coker.com.au>  Sat, 14 Jan 2012 19:27:21 +1100
+
 postal (0.71) unstable; urgency=low
 
   * Made rabid get the password right when -u is used.  Thanks to Lars Nordin

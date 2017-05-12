@@ -226,6 +226,7 @@ smtp::smtp(int threadNum, const smtp *parent)
  , m_res(parent->m_res)
  , m_netscape(parent->m_netscape)
  , m_nextPrint(0)
+ , m_useLMTP(parent->m_useLMTP)
 {
 }
 
