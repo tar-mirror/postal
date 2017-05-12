@@ -1,4 +1,5 @@
 #include "userlist.h"
+#include <cstdlib>
 #include <stdio.h>
 #include "expand.h"
 

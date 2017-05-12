@@ -1,4 +1,5 @@
 #include "expand.h"
+#include <cstdlib>
 #include <string>
 #include <stdio.h>
 

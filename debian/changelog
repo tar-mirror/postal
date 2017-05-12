@@ -1,3 +1,22 @@
+postal (0.68) unstable; urgency=low
+
+  * Added $(DESTDIR) support to the Makefile and -lrt for nanosleep() on
+    OpenSolaris (the OpenSolaris code is not tested).
+  * Fixed a minor compilation bug when not using GNUTLS.
+    Thanks Frank Fegert <frank.fegert@web.de>.
+  * Made it not use C++ warning flags on C compilation.
+  * Updated it to the latest Debian standards for Lenny and compile with
+    GCC 4.3. Closes: #474831
+
+ -- Russell Coker <russell@coker.com.au>  Wed,  9 Apr 2008 11:16:00 +1000
+
+postal (0.67-0.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix FTBFS with gcc-4.3. Thanks to MArtin Michlmayr. Closes: #417480
+
+ -- Andreas Barth <aba@not.so.argh.org>  Sun, 16 Mar 2008 23:48:44 +0000
+
 postal (0.67) unstable; urgency=low
 
   * Changed license to GPLv3.

@@ -7,9 +7,10 @@ all: $(EXE) $(SEXE)
 
 prefix=@prefix@
 eprefix=@exec_prefix@
-WFLAGS=-Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -Woverloaded-virtual -pedantic -ffor-scope
+WFLAGS=-Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -pedantic
+WPLUS=-Woverloaded-virtual -ffor-scope
 
-CXX=@CXX@ $(CFLAGS) -O2 -g $(WFLAGS)
+CXX=@CXX@ $(CFLAGS) -O2 -g $(WFLAGS) $(WPLUS)
 CC=@CC@ $(CFLAGS) -O2 -g $(WFLAGS)
 
 INSTALL=@INSTALL@
@@ -17,18 +18,19 @@ INSTALL=@INSTALL@
 TESTEXE=ex-test
 BASEOBJS=userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o expand.o @extra_objs@
 LFLAGS=-lstdc++ @extra_ldflags@
+CRYPTLFLAGS=-lstdc++ @crypt_ldflags@
 
 
 ALLOBJS=$(BASEOBJS) smtp.o client.o basictcp.o bhmusers.o smtpserver.o
 
 postal: postal.cpp $(BASEOBJS) postal.h smtp.o
-	$(CXX) postal.cpp $(BASEOBJS) smtp.o -o postal $(LFLAGS)
+	$(CXX) postal.cpp $(BASEOBJS) smtp.o -o postal $(CRYPTLFLAGS)
 
 rabid: rabid.cpp $(BASEOBJS) postal.h client.o
-	$(CXX) rabid.cpp $(BASEOBJS) client.o -o rabid $(LFLAGS)
+	$(CXX) rabid.cpp $(BASEOBJS) client.o -o rabid $(CRYPTLFLAGS)
 
 bhm: bhm.cpp userlist.o basictcp.o logit.o results.o mutex.o bhmusers.o postal.h
-	$(CXX) bhm.cpp userlist.o basictcp.o logit.o results.o mutex.o bhmusers.o -o bhm $(LFLAGS)
+	$(CXX) bhm.cpp userlist.o basictcp.o logit.o results.o mutex.o bhmusers.o -o bhm $(CRYPTLFLAGS)
 
 ex-test: ex-test.cpp expand.o
 	$(CXX) ex-test.cpp expand.o -o ex-test $(LFLAGS)
@@ -37,14 +39,14 @@ postal-list: postal-list.cpp expand.o
 	$(CXX) postal-list.cpp expand.o -o postal-list $(LFLAGS)
 
 install-bin: $(EXE) $(SEXE)
-	mkdir -p $(eprefix)/sbin $(eprefix)/bin
-	@INSTALL_PROGRAM@ @stripping@ $(SEXE) $(eprefix)/sbin
-	@INSTALL_PROGRAM@ @stripping@ $(EXE) $(eprefix)/bin
+	mkdir -p $(DESTDIR)$(eprefix)/sbin $(DESTDIR)$(eprefix)/bin
+	@INSTALL_PROGRAM@ @stripping@ $(SEXE) $(DESTDIR)$(eprefix)/sbin
+	@INSTALL_PROGRAM@ @stripping@ $(EXE) $(DESTDIR)$(eprefix)/bin
 
 install: install-bin
-	mkdir -p @mandir@/man8 @mandir@/man1
-	@INSTALL_DATA@ $(MAN8) @mandir@/man8
-	@INSTALL_DATA@ $(MAN1) @mandir@/man1
+	mkdir -p $(DESTDIR)@mandir@/man8 $(DESTDIR)@mandir@/man1
+	@INSTALL_DATA@ $(MAN8) $(DESTDIR)@mandir@/man8
+	@INSTALL_DATA@ $(MAN1) $(DESTDIR)@mandir@/man1
 
 %.o: %.cpp %.h postal.h
 	$(CXX) -c $<

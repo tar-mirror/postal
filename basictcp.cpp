@@ -14,8 +14,10 @@
 #include "logit.h"
 #include "results.h"
 
+#ifdef USE_GNUTLS
 int base_tcp::m_init_dh_params = 0;
 gnutls_dh_params_t base_tcp::m_dh_params;
+#endif
 
 base_tcp::base_tcp(int fd, Logit *log, Logit *debug, results *res
 #ifdef USE_SSL

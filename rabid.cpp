@@ -4,6 +4,7 @@
 
 #include "userlist.h"
 #include "client.h"
+#include <cstdlib>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>

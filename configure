@@ -677,6 +677,7 @@ gnutls
 openssl
 extra_objs
 linux_pthread
+crypt_ldflags
 large_file
 socklen_t
 LIBOBJS
@@ -1708,7 +1709,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 ac_config_headers="$ac_config_headers conf.h"
 
 
-version="0.67"
+version="0.68"
 
 # Check whether --enable-stripping was given.
 if test "${enable_stripping+set}" = set; then
@@ -4147,6 +4148,7 @@ if test -n "$use_extra_libs" && \
    IFS=$ac_save_ifs
 fi
 
+extra_ldflags=`/usr/bin/uname -a | grep -q SunOS && echo -lrt`
 
 { echo "$as_me:$LINENO: checking for bind in -lsocket" >&5
 echo $ECHO_N "checking for bind in -lsocket... $ECHO_C" >&6; }
@@ -4495,18 +4497,6 @@ fi
 if [ "$OPENSSL" = "no" ]; then
   extra_objs="md5.o"
 fi
-if [ "$GNUTLS" = "no" ]; then
-  gnutls=""
-else
-  gnutls="#define USE_GNUTLS"
-  extra_ldflags="$extra_ldflags -lgnutls"
-fi
-if [ "$OPENSSL" = "no" ]; then
-  openssl=""
-else
-  openssl="#define USE_OPENSSL"
-  extra_ldflags="$extra_ldflags -lssl -lcrypto"
-fi
 
 
 cat >conftest.$ac_ext <<_ACEOF
@@ -4608,6 +4598,21 @@ fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
+
+
+crypt_ldflags=
+if [ "$GNUTLS" = "no" ]; then
+  gnutls=""
+else
+  gnutls="#define USE_GNUTLS"
+  crypt_ldflags="$extra_ldflags -lgnutls"
+fi
+if [ "$OPENSSL" = "no" ]; then
+  openssl=""
+else
+  openssl="#define USE_OPENSSL"
+  crypt_ldflags="$extra_ldflags -lssl -lcrypto"
+fi
 
 
 large_file=""
@@ -5489,13 +5494,14 @@ gnutls!$gnutls$ac_delim
 openssl!$openssl$ac_delim
 extra_objs!$extra_objs$ac_delim
 linux_pthread!$linux_pthread$ac_delim
+crypt_ldflags!$crypt_ldflags$ac_delim
 large_file!$large_file$ac_delim
 socklen_t!$socklen_t$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 68; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 69; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
