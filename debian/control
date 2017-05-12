@@ -1,6 +1,6 @@
 Source: postal
 Build-Depends: debhelper, libssl096-dev
-Section: non-US/main
+Section: utils
 Priority: optional
 Maintainer: Russell Coker <russell@coker.com.au>
 Standards-Version: 3.0.1

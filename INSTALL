@@ -1,0 +1,14 @@
+For Debian the best thing to do is to do "apt-get install postal", if you don't
+want to use the version supplied with your version of Debian you can build a
+Debian package in the usual manner.
+Change to the directory containing the unpacked source and use the command:
+dpkg-buildpackage -rfakeroot -tc -us
+That will create a .deb in the parent directory.
+
+For Red Hat etc there is a portslave.spec file to allow for building with
+the "rpm -b" command.
+
+For Solaris use the command "make -C sun" to build a package in /var/spool/pkg
+(make sure you have write access to that directory).
+
+For other Unix setup "./configure ; make install" should do an install.

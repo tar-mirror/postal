@@ -8,7 +8,7 @@ typedef enum
   eNONE
 } TRISTATE;
 
-#define VER_STR "0.60"
+#define VER_STR "0.62"
 #define USE_SSL
 #define LINUX_PTHREAD
 

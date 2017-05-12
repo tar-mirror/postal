@@ -2,7 +2,15 @@
 #define USERLIST_H
 
 using namespace std;
+
+#include "conf.h"
+
+#ifdef HAVE_VECTOR
+#include <vector>
+#else
 #include <vector.h>
+#endif
+
 #include <string>
 
 typedef vector<string> STR_VEC;

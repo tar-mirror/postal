@@ -4,7 +4,13 @@
 using namespace std;
 #include <string>
 #include <time.h>
+#include "conf.h"
+#ifdef HAVE_EXT_HASH_MAP
+using namespace __gnu_cxx;
+#include <ext/hash_map>
+#else
 #include <hash_map.h>
+#endif
 #include "tcp.h"
 #include "mutex.h"
 

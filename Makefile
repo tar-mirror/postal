@@ -1,14 +1,13 @@
-# Generated automatically from Makefile.in by configure.
 EXE=postal postal-list rabid
 MAN8=postal-list.8 postal.8 rabid.8
 
 all: $(EXE)
 
-prefix=/home/rjc/debian/postal-0.61/debian/postal/usr
+prefix=/home/rjc/debian/postal-0.62/debian/postal/usr
 eprefix=${prefix}
 WFLAGS=-Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -Woverloaded-virtual -pedantic -ffor-scope
 
-CXX=c++ $(CFLAGS) -O2 -g $(WFLAGS)
+CXX=g++ $(CFLAGS) -O2 -g $(WFLAGS)
 CC=gcc $(CFLAGS) -O2 -g $(WFLAGS)
 
 INSTALL=/usr/bin/install -c

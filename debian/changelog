@@ -1,3 +1,17 @@
+postal (0.62) unstable; urgency=high
+
+  * Added an INSTALL document.
+
+  * Made it compile with GCC 3.2.
+
+ -- Russell Coker <russell@coker.com.au>  Tue, 14 Jan 2003 13:28:00 +0100
+
+postal (0.61-1) unstable; urgency=high
+
+  * Changed the section to main.
+
+ -- Russell Coker <russell@coker.com.au>  Sun, 16 Jun 2002 23:17:00 +0200
+
 postal (0.61) unstable; urgency=high
 
   * Fixed the makefile to not use "-d" or "-p" options to $(INSTALL).

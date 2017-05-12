@@ -1,0 +1,7 @@
+#ifndef CONF_H
+#define CONF_H
+
+#undef HAVE_VECTOR
+#undef HAVE_EXT_HASH_MAP
+
+#endif

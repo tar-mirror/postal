@@ -1,7 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(postal.cpp)
+AC_CONFIG_HEADER(conf.h)
 AC_SUBST(version)
-version="0.61"
+version="0.62"
 
 AC_ARG_ENABLE(stripping,
       [  --disable-stripping  disables stripping of installed binaries],
@@ -115,6 +116,7 @@ if [[ -n "$no_socklen_t" ]]; then
   socklen_t="#define socklen_t int"
 fi
 
+AC_CHECK_HEADERS(vector ext/hash_map)
 
 dnl Checks for library functions.
 

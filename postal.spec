@@ -1,6 +1,6 @@
-Summary: A program for benchmarking hard drives and filesystems
+Summary: A program for benchmarking mail servers
 Name: postal
-Version: 0.60
+Version: 0.62
 Release: 1
 Copyright: GPL
 Group: Utilities/Benchmarking
