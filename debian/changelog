@@ -1,3 +1,9 @@
+postal (0.67) unstable; urgency=low
+
+  * Changed license to GPLv3.
+
+ -- Russell Coker <russell@coker.com.au>  Mon,  2 Jul 2007 20:12:00 +1000
+
 postal (0.66) unstable; urgency=low
 
   * Added MessageId to Postal.
