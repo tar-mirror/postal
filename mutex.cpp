@@ -2,6 +2,7 @@
 #include "postal.h"
 #include "mutex.h"
 #include <stdio.h>
+#include <unistd.h>
 
 Mutex::Mutex(bool
 #ifdef LINUX_PTHREAD

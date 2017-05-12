@@ -1,8 +1,10 @@
 EXE=postal postal-list rabid
+MAN8=postal-list.8 postal.8 rabid.8
 
 all: $(EXE)
 
-PREFIX=@prefix@
+prefix=@prefix@
+eprefix=@exec_prefix@
 WFLAGS=-Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wcast-qual -Woverloaded-virtual -pedantic -ffor-scope
 
 CXX=@CXX@ $(CFLAGS) -O2 -g $(WFLAGS)
@@ -11,7 +13,7 @@ CC=@CC@ $(CFLAGS) -O2 -g $(WFLAGS)
 INSTALL=@INSTALL@
 
 TESTEXE=ex-test
-BASEOBJS=@conv_objs@ userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
+BASEOBJS=expand.o userlist.o thread.o results.o address.o tcp.o cmd5.o mutex.o logit.o @extra_objs@
 LFLAGS=-lstdc++ @extra_ldflags@
 
 
@@ -29,9 +31,13 @@ ex-test: ex-test.cpp expand.o
 postal-list: postal-list.cpp expand.o
 	$(CXX) postal-list.cpp expand.o -o postal-list $(LFLAGS)
 
-install:
-	$(INSTALL) -d -p $(DESTDIR)/sbin
-	@INSTALL_PROGRAM@ @stripping@ $(EXE) $(DESTDIR)/sbin
+install-bin: $(EXE)
+	$(INSTALL) -d -p $(eprefix)/sbin
+	@INSTALL_PROGRAM@ @stripping@ $(EXE) $(eprefix)/sbin
+
+install: install-bin
+	mkdir -p @mandir@/man8
+	@INSTALL_DATA@ $(MAN8) @mandir@/man8
 
 %.o: %.cpp %.h postal.h
 	$(CXX) -c $<

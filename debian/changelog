@@ -1,3 +1,18 @@
+postal (0.59) unstable; urgency=high
+
+  * Closes: #86932
+    Fixed the Build-Depends.
+
+  * Added stdlib.h to mutex.cpp to make it compile on all systems.
+
+  * Added rule "install-bin" to the makefile to install binaries without
+    man pages, "make install" will install everything.
+
+  * Removed the code to disable compiling with user-name conversion.  It should
+    compile on all systems now!
+
+ -- Russell Coker <russell@coker.com.au>  Mon, 6 Mar 2001 20:59:39 +0100
+
 postal (0.58) unstable; urgency=high
 
   * Closes:#79647

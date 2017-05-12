@@ -1,5 +1,5 @@
 Source: postal
-Build-Depends: debhelper libssl096-dev
+Build-Depends: debhelper, libssl096-dev
 Section: non-US/main
 Priority: optional
 Maintainer: Russell Coker <russell@coker.com.au>

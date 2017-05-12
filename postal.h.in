@@ -11,7 +11,6 @@ typedef enum
 #define VER_STR "@version@"
 @ssl@
 @linux_pthread@
-@conversion@
 @socklen_t@
 @bool@
 #if @true_false@

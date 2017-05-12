@@ -93,17 +93,11 @@ int main(int argc, char **argv)
     usage();
   if(deletePercent < 0 || deletePercent > 100)
     usage();
-#ifndef NO_CONVERSION
   if(optind + 3 != argc)
-#else
-  if(optind + 2 != argc)
-#endif
     usage();
 
   UserList ul(argv[optind + 1]
-#ifndef NO_CONVERSION
             , argv[optind + 2]
-#endif
             , true);
 
   struct sigaction sa;
